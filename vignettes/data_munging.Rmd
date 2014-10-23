@@ -1,0 +1,23 @@
+# Data Munging
+
+Loading some data to see what we have.
+
+```{r load_chrom_22}
+library(GenomicRanges)
+tmp <- read.table("../../parp1_data/YFM_LN5_chr22.csv", sep = ",", header = TRUE)
+head(tmp)
+```
+
+So each entry has a *bead*, a *startx*, and a *strand*. This looks like it has been aligned to the genome given the *startx* field. 
+
+What is curious is that there does not appear to be a *stopx* or *endx* in the file. 
+
+So lets put this into a `GenomicRanges` object to work with it some more, and we will just make the width 1.
+
+```{r chr22_GRanges}
+chr22 <- GRanges(seqnames = "chr22", ranges = IRanges(start = tmp$startx, width = 1), strand = tmp$strand)
+chr22 <- sort(chr22)
+rm(tmp)
+chr22
+```
+
