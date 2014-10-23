@@ -21,3 +21,14 @@ rm(tmp)
 chr22
 ```
 
+IS there any regularity in the distance between each position?
+
+```{r examine_distance}
+p_chr22 <- chr22[(strand(chr22) == "+")]
+p_chr22
+distance_p_chr22 <- diff(start(p_chr22))
+hist_bins <- c(seq(0, 500, 50), 200000)
+hist(distance_p_chr22, breaks = hist_bins, xlim = c(0, 500))
+```
+
+
