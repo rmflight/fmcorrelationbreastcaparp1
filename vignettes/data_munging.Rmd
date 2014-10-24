@@ -1,34 +1,22 @@
 # Data Munging
 
-Loading some data to see what we have.
+## How many lines of data do we have?
 
-```{r load_chrom_22}
-library(GenomicRanges)
-tmp <- read.table("../../parp1_data/YFM_LN5_chr22.csv", sep = ",", header = TRUE)
-head(tmp)
-```
+```{r count_lines}
+ln4_files <- dir("../parp1_data", pattern = "YFM_LN4")
+ln4_lines <- sapply(ln4_files, function(x){
+  file_loc <- file.path("../parp1_data", x)
+  R.utils::countLines(file_loc)
+})
+sum(ln4_lines)
 
-So each entry has a *bead*, a *startx*, and a *strand*. This looks like it has been aligned to the genome given the *startx* field. 
 
-What is curious is that there does not appear to be a *stopx* or *endx* in the file. 
-
-So lets put this into a `GenomicRanges` object to work with it some more, and we will just make the width 1.
-
-```{r chr22_GRanges}
-chr22 <- GRanges(seqnames = "chr22", ranges = IRanges(start = tmp$startx, width = 1), strand = tmp$strand)
-chr22 <- sort(chr22)
-rm(tmp)
-chr22
-```
-
-IS there any regularity in the distance between each position?
-
-```{r examine_distance}
-p_chr22 <- chr22[(strand(chr22) == "+")]
-p_chr22
-distance_p_chr22 <- diff(start(p_chr22))
-hist_bins <- c(seq(0, 500, 50), 200000)
-hist(distance_p_chr22, breaks = hist_bins, xlim = c(0, 500))
+ln5_files <- dir("../parp1_data", patter = "YFM_LN5")
+ln5_lines <- sapply(ln5_files, function(x){
+  file_loc <- file.path("../parp1_data", x)
+  R.utils::countLines(file_loc)
+})
+sum(ln5_lines)
 ```
 
 
