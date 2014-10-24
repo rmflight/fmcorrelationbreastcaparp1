@@ -1,0 +1,25 @@
+# Overlap with Methylation
+
+The methylation peaks will be read in from the right files. 
+
+```{r use_dir}
+data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+library(GenomicRanges)
+library(magrittr)
+```
+
+```{r read_methylation}
+methyl_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
+methyl_names <- strsplit(methyl_files, "_") %>% sapply(., function(x){x[6]})
+methyl_names <- strtrim(methyl_names, nchar(methyl_names) - 4)
+
+names(methyl_files) <- methyl_names
+
+methyl_data <- lapply(methyl_files, function(x){
+  tmp <- read.table(x, header = TRUE, sep = ",")
+  GRanges(seqnames = tmp$chrom,
+          ranges = IRanges(start = tmp$chromStart, end = tmp$chromEnd),
+          mcols = DataFrame(tmp[, c("b1", "b2", "b3")]))
+})
+```
+
