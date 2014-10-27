@@ -22,9 +22,15 @@ methyl_data <- lapply(methyl_files, function(x){
   names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
   GRanges(seqnames = tmp$chrom,
           ranges = IRanges(start = tmp$start, end = tmp$end),
-          mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]))
+          mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
 })
 methyl_data <- GRangesList(methyl_data)
+```
+
+We will also store the total number of reads from *LN4* and *LN5* samples.
+
+```{r}
+total_reads <- c(ln4 = 60486202, ln5 = 54125517)
 ```
 
 
@@ -48,7 +54,37 @@ ln4_overlap <- mclapply(ln4_files, function(x){
 })
 
 names(ln4_overlap) <- sapply(ln4_files, get_chr)
+```
+
+Before we get the data out, lets go through for a given methylation status, and check that each chromosome gives different non-zero entries.
+
+```{r check_non_zero}
+check_indices <- lapply(ln4_overlap, function(x){
+  which(x[[1]] > 0)
+})
+check_indices <- unlist(check_indices)
+sum(duplicated(check_indices))
+```
+
+So now we will add the number of overlapped data in `ln4_overlapped` to the data in `methyl_data`. We already created this slot, so hopefully we will avoid any memory problems.
+
+```{r copy_overlap_counts}
+methyl_names <- names(methyl_data)
+ln4_names <- names(ln4_overlap)
+
+for (i_methyl in methyl_names){
+  for (i_ln4 in ln4_names){
+    use_indices <- which(ln4_overlap[[i_ln4]][[i_methyl]] > 0)
+    mcols(methyl_data[[i_methyl]])$overlap[use_indices] <- ln4_overlap[[i_ln4]][[i_methyl]][use_indices]
+    mcols(methyl_data[[i_methyl]])$overlap_ratio <- mcols(methyl_data[[i_methyl]])$overlap / total_reads["ln4"]
+  }
+}
+```
+
+
+Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 1000 points to see what exactly is going on.
+
+```{r}
 
 ```
 
-Now with methylation in
