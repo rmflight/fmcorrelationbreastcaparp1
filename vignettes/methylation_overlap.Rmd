@@ -8,6 +8,7 @@ library(GenomicRanges)
 library(magrittr)
 options(mc.cores = 10)
 library(parallel)
+library(ggplot2)
 ```
 
 ```{r read_methylation}
@@ -84,7 +85,12 @@ for (i_methyl in methyl_names){
 
 Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 1000 points to see what exactly is going on.
 
-```{r}
-
+```{r graphit}
+use_vars <- c("mcols.signal", "overlap_ratio")
+subsamples <- lapply(methyl_names, function(x){
+  tmp_data <- subsample_nonzeros(mcols(methyl_data[[x]]), c("mcols.signal", "overlap_ratio"), non_zero = "both", n_points = 1000)
+  ggplot(tmp_data, aes(x = mcols.signal, y = overlap_ratio)) + geom_point() + ggtitle(x) + scale_x_log10() + scale_y_log10()
+})
 ```
 
+hmmm, correlations are rather poor. 
