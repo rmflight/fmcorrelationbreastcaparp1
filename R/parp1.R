@@ -126,6 +126,6 @@ correlate_non_zero <- function(data, data_columns, log_transform = TRUE, test = 
     return(corr_value = c_value)
   } else {
     t_value <- cor.test(x, y)$p.value
-    return(corr_value = c_value, p_value = t_value)
+    return(c(corr_value = c_value, p_value = t_value))
   }
 }
