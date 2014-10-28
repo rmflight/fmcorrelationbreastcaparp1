@@ -133,7 +133,7 @@ out_cor
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
-  subpoints <- subsample_nonzeros(overlap_values, use_vars, non_zero = "both", n_points = 1000)
+  subpoints <- subsample_nonzeros(overlap_values, use_vars, non_zero = "both", n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
 ```
