@@ -1,0 +1,53 @@
+#' subsample non-zeros
+#' 
+#' Takes a \code{DataFrame} instance and for the two columns indicated, returns a subset of points that are non-zero in one or both of 
+#' the variables. 
+#' 
+#' @param data a \code{DataFrame}
+#' @param data_columns which columns to use
+#' @param non_zero either one of the columns, or "both"
+#' @param n_points how many points to sample
+#' @export
+#' @return data.frame
+subsample_nonzeros <- function(data, data_columns, non_zero = "both", n_points = 1000){
+  non_zero_entries <- lapply(data_columns, function(x){
+    data[, x] != 0
+  })
+  names(non_zero_entries) <- data_columns
+  
+  if (non_zero == "both"){
+    use_data <- data_columns
+  } else {
+    use_data <- non_zero
+  }
+  
+  keep_data <- non_zero_entries[use_data]
+  
+  non_zero_entries <- do.call("&", non_zero_entries)
+  nz_index <- which(non_zero_entries)
+  
+  sample_index <- sample(nz_index, size = n_points, replace = FALSE)
+  return(as.data.frame(data[sample_index, data_columns]))
+}
+
+#' weighted average by width
+#' 
+#' given a \code{GRanges} object and an \code{mcols} column, a weighted average of the \code{mcols} column will
+#' be calculated where the weight will be the fractional number of bases indicated by the width of each entry in 
+#' the \code{GRanges} object.
+#' 
+#' @param granges the \code{GRanges} object
+#' @param use_column which column from \code{mcols} has the signal to average
+#' @return numeric
+#' @export
+average_value <- function(granges, use_column = "mcols.signal"){
+  if (length(granges) == 0){
+    return(0)
+  }
+  range_widths <- width(granges)
+  total_width <- sum(range_width)
+  range_weights <- range_widths / total_width
+  
+  range_value <- mcols(granges)[,use_column]
+  return(weighted.mean(range_value, range_weights))
+}
