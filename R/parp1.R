@@ -89,3 +89,43 @@ get_chr <- function(filename){
   chr_part <- strsplit(filename, "_")[[1]][5]
   substr(chr_part, 1, nchar(chr_part)-4)
 }
+
+#' correlate non-zeros
+#' 
+#' from a \code{DataFrame} object, generate correlation of the non-zero entries
+#' 
+#' @param data the data we are working with
+#' @param data_columns which columns to use
+#' @param log_transform do a log transformation on the data before calculating the correlation
+#' @param test also return a p-value of the correlation?
+#' @return numeric vector
+#' @export
+correlate_non_zero <- function(data, data_columns, log_transform = TRUE, test = TRUE){
+  non_zero_entries <- lapply(data_columns, function(x){
+    data[, x] != 0
+  })
+  
+  names(non_zero_entries) <- data_columns
+  keep_data <- non_zero_entries[data_columns]
+  
+  non_zero_entries <- do.call("&", non_zero_entries)
+  nz_index <- which(non_zero_entries)
+  
+  x <- data[nz_index, data_columns[1]]
+  y <- data[nz_index, data_columns[2]]
+  
+  if (log_transform){
+    x <- log(x)
+    y <- log(y)
+  }
+  
+  c_value <- cor(x, y)
+  
+  
+  if (!test){
+    return(corr_value = c_value)
+  else {
+    t_value <- cor.test(x, y)$p.value
+    return(corr_value = c_value, p_value = t_value)
+  }
+}
