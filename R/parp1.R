@@ -26,6 +26,10 @@ subsample_nonzeros <- function(data, data_columns, non_zero = "both", n_points =
   non_zero_entries <- do.call("&", non_zero_entries)
   nz_index <- which(non_zero_entries)
   
+  if (length(nz_index) < n_points){
+    n_points <- length(nz_index)
+  }
+  
   sample_index <- sample(nz_index, size = n_points, replace = FALSE)
   return(as.data.frame(data[sample_index, data_columns]))
 }
