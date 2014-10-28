@@ -88,9 +88,9 @@ So now we will create the `DataFrame` that can be added to the original transcri
 
 ```{r methyl_sample_dataframe}
 n_tss <- length(tss_windows)
-overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(methyl_data) + 2), row.names = names(tss_windows))
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(methyl_data) + 4), row.names = names(tss_windows))
 
-colnames(overlap_values) <- c(names(methyl_data), "ln4", "ln5")
+colnames(overlap_values) <- c(names(methyl_data), "ln4", "ln5", "ln4_frac", "ln5_frac")
 
 for (i_name in names(methyl_data)){
   use_names <- names(methyl_data[[i_name]])
@@ -99,17 +99,32 @@ for (i_name in names(methyl_data)){
 
 overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
 overlap_values[names(ln4_overlap), "ln4"] <- ln4_overlap
+overlap_values[, "ln4_frac"] <- overlap_values[, "ln4"] / total_reads["ln4"]
+overlap_values[, "ln5_frac"] <- overlap_values[, "ln5"] / total_reads["ln5"]
 ```
 
 
-Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 1000 points to see what exactly is going on.
+Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 10000 points to see what exactly is going on.
 
 ```{r graphit}
-use_vars <- c("mcols.signal", "overlap_ratio")
-subsamples <- lapply(methyl_names, function(x){
-  tmp_data <- subsample_nonzeros(mcols(methyl_data[[x]]), c("mcols.signal", "overlap_ratio"), non_zero = "both", n_points = 1000)
-  ggplot(tmp_data, aes(x = mcols.signal, y = overlap_ratio)) + geom_point() + ggtitle(x) + scale_x_log10() + scale_y_log10()
-})
+h3k04me3k_v_ln4 <- subsample_nonzeros(overlap_values, c("H3k04me3k", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
+
+h3k27ac_v_ln4 <- subsample_nonzeros(overlap_values, c("H3K27ac", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 ```
 
-hmmm, correlations are rather poor. 
+Cool. Now we are showing some promise. Let's do them all.
+
+```{r grab_all}
+all_comb <- expand.grid(names(methyl_data), c("ln4", "ln5"), stringsAsFactors = FALSE)
+out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  correlate_non_zero(overlap_values, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+})
+all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
+out_cor <- do.call(rbind, out_cor)
+rownames(out_cor) <- all_comb_names
+```
+
