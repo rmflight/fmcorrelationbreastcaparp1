@@ -84,29 +84,21 @@ ln5_files <- file.path(data_dir, dir(data_dir, pattern = "YFM_LN5_chr"))
 ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
 ```
 
-Before we get the data out, lets go through for a given methylation status, and check that each chromosome gives different non-zero entries.
+So now we will create the `DataFrame` that can be added to the original transcript start site windows.
 
-```{r check_non_zero}
-check_indices <- lapply(ln4_overlap, function(x){
-  which(x[[1]] > 0)
-})
-check_indices <- unlist(check_indices)
-sum(duplicated(check_indices))
-```
+```{r methyl_sample_dataframe}
+n_tss <- length(tss_windows)
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(methyl_data) + 2), row.names = names(tss_windows))
 
-So now we will add the number of overlapped data in `ln4_overlapped` to the data in `methyl_data`. We already created this slot, so hopefully we will avoid any memory problems.
+colnames(overlap_values) <- c(names(methyl_data), "ln4", "ln5")
 
-```{r copy_overlap_counts}
-methyl_names <- names(methyl_data)
-ln4_names <- names(ln4_overlap)
-
-for (i_methyl in methyl_names){
-  for (i_ln4 in ln4_names){
-    use_indices <- which(ln4_overlap[[i_ln4]][[i_methyl]] > 0)
-    mcols(methyl_data[[i_methyl]])$overlap[use_indices] <- ln4_overlap[[i_ln4]][[i_methyl]][use_indices]
-    mcols(methyl_data[[i_methyl]])$overlap_ratio <- mcols(methyl_data[[i_methyl]])$overlap / total_reads["ln4"]
-  }
+for (i_name in names(methyl_data)){
+  use_names <- names(methyl_data[[i_name]])
+  overlap_values[use_names, i_name] <- methyl_data[[i_name]]
 }
+
+overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
+overlap_values[names(ln4_overlap), "ln4"] <- ln4_overlap
 ```
 
 
