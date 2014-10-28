@@ -44,9 +44,9 @@ average_value <- function(granges, use_column = "mcols.signal"){
   if (length(granges) == 0){
     return(0)
   }
-  range_widths <- width(granges)
+  range_width <- width(granges)
   total_width <- sum(range_width)
-  range_weights <- range_widths / total_width
+  range_weights <- range_width / total_width
   
   range_value <- mcols(granges)[,use_column]
   return(weighted.mean(range_value, range_weights))
