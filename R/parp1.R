@@ -51,3 +51,41 @@ average_value <- function(granges, use_column = "mcols.signal"){
   range_value <- mcols(granges)[,use_column]
   return(weighted.mean(range_value, range_weights))
 }
+
+#' get overlap counts
+#' 
+#' given a set of files (assumed to be chromosomes), and a set of \code{GRanges}, count the number of overlaps with
+#' the \code{GRanges}.
+#' 
+#' @param file_list the list of files to read in corresponding to ranges
+#' @param granges the genomic ranges to count the overlaps with
+#' 
+#' @return vector of counts
+#' @export
+#' @import GenomicRanges
+get_overlap_counts <- function(file_list, granges){
+  out_overlap <- mclapply(file_list, function(x){
+    tmp <- read.table(x, header = TRUE, sep = ",")
+    tmpRange <- GRanges(seqnames = get_chr(x),
+                        ranges = IRanges(start = tmp$startx, width = 1))
+    countOverlaps(tss_windows, tmpRange)
+  })
+  
+  out_tss <- lapply(out_overlap, function(in_count){
+    in_count[in_count != 0]
+  })
+  out_tss <- unlist(out_tss)
+  return(out_tss)
+}
+
+#' get chromosome
+#' 
+#' from a filename, get the chromosome part of the filename
+#' 
+#' @param filename the filename to parse
+#' @return string of the chromosome
+#' @export
+get_chr <- function(filename){
+  chr_part <- strsplit(filename, "_")[[1]][5]
+  substr(chr_part, 1, nchar(chr_part)-4)
+}
