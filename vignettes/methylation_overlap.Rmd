@@ -11,6 +11,30 @@ library(parallel)
 library(ggplot2)
 ```
 
+Based on previous manuscripts, it may be a good idea to restrict both the methylation and parp1 reads to a 2kb window surrounding annotated transcription start sites (tss). 
+
+```{r read_tss}
+tss_file <- file.path(data_dir, "ensGene_TTSS.csv")
+tss_data <- read.table(tss_file, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+tss_regions <- GRanges(seqnames = tss_data$chrom,
+                       strand = tss_data$strand,
+                       ranges = IRanges(start = tss_data$txStart,
+                                        end = tss_data$txEnd),
+                       names = tss_data$name)
+rm(tss_data)
+```
+
+Generate 2kb regions around each *tss*.
+
+```{r windowed_tss}
+tss_windows <- GRanges(seqnames = seqnames(tss_regions),
+                       strand = strand(tss_regions),
+                       ranges = IRanges(start = start(tss_regions) - 1000,
+                                        end = start(tss_regions) + 1000),
+                       names = names(tss_regions))
+```
+
+
 ```{r read_methylation}
 methyl_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
 methyl_names <- strsplit(methyl_files, "_") %>% sapply(., function(x){x[6]})
