@@ -30,8 +30,8 @@ Generate 2kb regions around each *tss*.
 tss_windows <- GRanges(seqnames = seqnames(tss_regions),
                        strand = strand(tss_regions),
                        ranges = IRanges(start = start(tss_regions) - 1000,
-                                        end = start(tss_regions) + 1000),
-                       names = names(tss_regions))
+                                        end = start(tss_regions) + 1000))
+names(tss_windows) <- mcols(tss_regions)$names
 ```
 
 
