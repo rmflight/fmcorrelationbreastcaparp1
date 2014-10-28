@@ -119,12 +119,22 @@ cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(names(methyl_data), c("ln4", "ln5"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(names(methyl_data), c("ln4", "ln4_frac", "ln5", "ln5_frac"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  print(i_row)
   correlate_non_zero(overlap_values, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
 })
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 out_cor <- do.call(rbind, out_cor)
 rownames(out_cor) <- all_comb_names
+out_cor
+```
+
+```{r graphs}
+out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  use_vars <- as.character(all_comb[i_row,])
+  subpoints <- subsample_nonzeros(overlap_values, use_vars, non_zero = "both", n_points = 1000)
+  ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
+})
 ```
 
