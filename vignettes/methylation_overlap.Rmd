@@ -34,6 +34,7 @@ tss_windows <- GRanges(seqnames = seqnames(tss_regions),
 names(tss_windows) <- mcols(tss_regions)$names
 ```
 
+Now we read in the methylation data.
 
 ```{r read_methylation}
 methyl_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
@@ -45,9 +46,14 @@ names(methyl_files) <- methyl_names
 methyl_data <- lapply(methyl_files, function(x){
   tmp <- read.table(x, header = TRUE, sep = ",")
   names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
-  GRanges(seqnames = tmp$chrom,
+  methyl_tmp <- GRanges(seqnames = tmp$chrom,
           ranges = IRanges(start = tmp$start, end = tmp$end),
           mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
+  rm(tmp)
+  methyl_vals <- mclapply(names(tss_windows), function(in_window){
+    methyl_overlap <- subsetByOverlaps(methyl_tmp, tss_windows[in_window], minoverlap = 80, ignore.strand = TRUE)
+    average_value(methyl_overlap, "mcols.signal")
+  })
 })
 methyl_data <- GRangesList(methyl_data)
 ```
