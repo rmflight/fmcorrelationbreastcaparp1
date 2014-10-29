@@ -1,0 +1,212 @@
+# Overlap with Methylation
+
+The methylation peaks will be read in from the right files. 
+
+```{r use_dir}
+data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+library(GenomicRanges)
+library(magrittr)
+options(mc.cores = 10)
+library(parallel)
+library(ggplot2)
+library(rmfNotifier)
+library(parp1)
+library(BiocParallel)
+```
+
+Based on previous manuscripts, it may be a good idea to restrict both the methylation and parp1 reads to a 2kb window surrounding annotated transcription start sites (tss). 
+
+```{r read_tss}
+tss_file <- file.path(data_dir, "ensGene_TTSS.csv")
+tss_data <- read.table(tss_file, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+tss_regions <- GRanges(seqnames = tss_data$chrom,
+                       strand = tss_data$strand,
+                       ranges = IRanges(start = tss_data$txStart,
+                                        end = tss_data$txEnd),
+                       names = tss_data$name)
+rm(tss_data)
+```
+
+Generate 2kb regions around each *tss*.
+
+```{r windowed_tss}
+tss_windows <- GRanges(seqnames = seqnames(tss_regions),
+                       strand = strand(tss_regions),
+                       ranges = IRanges(start = start(tss_regions) - 1000,
+                                        end = start(tss_regions) + 1000))
+names(tss_windows) <- mcols(tss_regions)$names
+```
+
+Now we read in the methylation data.
+
+```{r read_methylation}
+methyl_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
+methyl_names <- strsplit(methyl_files, "_") %>% sapply(., function(x){x[6]})
+methyl_names <- strtrim(methyl_names, nchar(methyl_names) - 4)
+
+names(methyl_files) <- methyl_names
+
+methyl_data <- lapply(methyl_files, function(x){
+  tmp <- read.table(x, header = TRUE, sep = ",")
+  names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
+  methyl_tmp <- GRanges(seqnames = tmp$chrom,
+          ranges = IRanges(start = tmp$start, end = tmp$end),
+          mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
+  rm(tmp)
+  
+  methyl_overlap <- findOverlaps(methyl_tmp, tss_windows, minoverlap = 80, ignore.strand = TRUE)
+  methyl_2_tss <- split(methyl_tmp[queryHits(methyl_overlap)], names(tss_windows)[subjectHits(methyl_overlap)])
+  
+  methyl_vals <- bplapply(methyl_2_tss, function(in_tss){
+    average_value(in_tss)
+  })
+  methyl_vals <- unlist(methyl_vals)
+  methyl_vals
+})
+#methyl_data <- GRangesList(methyl_data)
+```
+
+We will also get the total number of reads from *LN4* and *LN5* samples.
+
+```{r}
+total_reads <- c(ln4 = 60486202, ln5 = 54125517)
+```
+
+
+Now lets go through the *parp1* nucleosome data. For each chromosome, we will count those reads that are within the 2kb TSS window, assuming that the reads correspond to nucleosomes.
+
+```{r get_chromosome_within_tss}
+ln4_files <- file.path(data_dir, dir(data_dir, pattern = "YFM_LN4_chr"))
+
+ln4_overlap <- get_overlap_counts(ln4_files, tss_windows)
+
+ln5_files <- file.path(data_dir, dir(data_dir, pattern = "YFM_LN5_chr"))
+ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
+```
+
+So now we will create the `DataFrame` that can be added to the original transcript start site windows.
+
+```{r methyl_sample_dataframe}
+n_tss <- length(tss_windows)
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(methyl_data) + 4), row.names = names(tss_windows))
+
+colnames(overlap_values) <- c(names(methyl_data), "ln4", "ln5", "ln4_frac", "ln5_frac")
+
+for (i_name in names(methyl_data)){
+  use_names <- names(methyl_data[[i_name]])
+  overlap_values[use_names, i_name] <- methyl_data[[i_name]]
+}
+
+overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
+overlap_values[names(ln4_overlap), "ln4"] <- ln4_overlap
+overlap_values[, "ln4_frac"] <- overlap_values[, "ln4"] / total_reads["ln4"]
+overlap_values[, "ln5_frac"] <- overlap_values[, "ln5"] / total_reads["ln5"]
+```
+
+
+Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 10000 points to see what exactly is going on.
+
+```{r graphit}
+h3k04me3k_v_ln4 <- subsample_nonzeros(overlap_values, c("H3k04me3k", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
+
+h3k27ac_v_ln4 <- subsample_nonzeros(overlap_values, c("H3K27ac", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
+```
+
+Cool. Now we are showing some promise. Let's do them all.
+
+```{r grab_all}
+all_comb <- expand.grid(names(methyl_data), c("ln4", "ln4_frac", "ln5", "ln5_frac"), stringsAsFactors = FALSE)
+out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  print(i_row)
+  correlate_non_zero(overlap_values, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+})
+all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
+out_cor <- do.call(rbind, out_cor)
+rownames(out_cor) <- all_comb_names
+out_cor
+```
+
+```{r graphs}
+out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  use_vars <- as.character(all_comb[i_row,])
+  subpoints <- subsample_nonzeros(overlap_values, use_vars, non_zero = "both", n_points = 10000)
+  ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
+})
+```
+
+## Alternative Nucleosome Positions
+
+In the above analysis, the reads from *parp1* bound nucleosomes were simply looked for overlap and used, without explicitly calculating nucleosome centers. Given the wide TSS window used, this should be ok. However, the nucleosome position should be somewhere in between the reads on the *+* and *-* strands. Previous pubs suggested using correlation between *+* and *-* reads to find the nucleosome distance. Let's try that and redo some of the calculations.
+
+To make our life easier, we'll check this out on only one chromosome, from one experiment. Specifically, we'll use *chromosome 3*, from *ln4*.
+
+```{r load_chr3}
+tmp <- read.table(ln4_files[16], sep = ",", header = TRUE, stringsAsFactors = FALSE)
+chr3 <- GRanges(seqnames = "chr3",
+                ranges = IRanges(start = tmp$startx, width = 1),
+                strand = tmp$strand)
+rm(tmp)
+```
+
+Now split them into positive and negative stranded reads.
+
+```{r split_pos_neg}
+chr3_neg <- chr3[strand(chr3) == "-"]
+chr3_pos <- chr3[strand(chr3) == "+"]
+```
+
+What we will do is `shift` the positive strand ranges by different amounts, and then count how many matches we get on the negative strand. When we have the largest fraction of reads that have a match, then we should have the correct distance to the nucleosome centers.
+
+```{r find_best_distance}
+test_distance <- seq(100, 200)
+test_fraction <- double(length(test_distance))
+for (i_shift in seq(1, length(test_distance))){
+  pos_shift <- shift(chr3_pos, test_distance[i_shift])
+  n_over <- countOverlaps(pos_shift, chr3_neg, ignore.strand = TRUE)
+  test_fraction[i_shift] <- sum(n_over) / length(pos_shift)
+}
+```
+
+Plot It!
+
+```{r plot_distances_vs_score}
+plot(test_distance, test_fraction)
+plot(test_distance, test_fraction, xlim = c(100, 120))
+```
+
+From this plot, it looks like we could get away with using a distance of *112* nucleotides between reads. So, we will do the above calculations again, but this time we will shift all *+* strand reads by 112, and all *-* strand reads by -112. 
+
+```{r get_shifted_overlap}
+ln4_overlap_shift <- get_overlap_counts(ln4_files, tss_windows, offset = 112)
+
+ln5_overlap_shift <- get_overlap_counts(ln5_files, tss_windows, offset = 112)
+```
+
+```{r save_new_values}
+overlap_values_shift <- overlap_values
+overlap_values_shift[names(ln5_overlap_shift), "ln5"] <- ln5_overlap_shift
+overlap_values_shift[names(ln4_overlap_shift), "ln4"] <- ln4_overlap_shift
+overlap_values_shift[, "ln4_frac"] <- overlap_values_shift[, "ln4"] / total_reads["ln4"]
+overlap_values_shift[, "ln5_frac"] <- overlap_values_shift[, "ln5"] / total_reads["ln5"]
+```
+
+```{r shifted_correlations}
+out_cor_shift <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  print(i_row)
+  correlate_non_zero(overlap_values_shift, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+})
+out_cor_shift <- do.call(rbind, out_cor_shift)
+rownames(out_cor_shift) <- all_comb_names
+out_cor_shift
+
+out_graphs_shift <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  use_vars <- as.character(all_comb[i_row,])
+  subpoints <- subsample_nonzeros(overlap_values_shift, use_vars, non_zero = "both", n_points = 10000)
+  ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
+})
+```
+
