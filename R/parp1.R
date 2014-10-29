@@ -63,16 +63,24 @@ average_value <- function(granges, use_column = "mcols.signal"){
 #' 
 #' @param file_list the list of files to read in corresponding to ranges
 #' @param granges the genomic ranges to count the overlaps with
+#' @param offset a value by which to \code{shift} the reads by, positively for "+" and negatively for "-"
 #' 
 #' @return vector of counts
 #' @export
 #' @import GenomicRanges
-get_overlap_counts <- function(file_list, granges){
+get_overlap_counts <- function(file_list, granges, offset = 0){
   out_overlap <- mclapply(file_list, function(x){
     tmp <- read.table(x, header = TRUE, sep = ",")
     tmpRange <- GRanges(seqnames = get_chr(x),
-                        ranges = IRanges(start = tmp$startx, width = 1))
-    countOverlaps(tss_windows, tmpRange)
+                        ranges = IRanges(start = tmp$startx, width = 1),
+                        strand = tmp$strand)
+    
+    if (offset != 0){
+      pos_loc <- strand(tmpRange) == "+"
+      tmpRange[pos_loc] <- shift(tmpRange[pos_loc], offset)
+      tmpRange[!pos_loc] <- shift(tmpRange[!pos_loc], -1 * offset)
+    }
+    countOverlaps(tss_windows, tmpRange, ignore.strand = TRUE)
   })
   
   out_tss <- lapply(out_overlap, function(in_count){
