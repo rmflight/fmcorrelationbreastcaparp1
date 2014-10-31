@@ -2,6 +2,10 @@
 
 The methylation peaks will be read in from the right files. 
 
+```{r setupKnitr, echo=FALSE, results='hide'}
+knitr::opts_chunk$set(dev='CairoPNG')
+```
+
 ```{r use_dir}
 data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
 library(GenomicRanges)
