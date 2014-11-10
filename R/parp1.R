@@ -39,6 +39,7 @@ convert_to_counted <- function(reads_file, delim = ",", read_start = "startx",
   data_path <- dirname(reads_file)
   out_file <- paste(prepend, use_chr, sep = "_") %>% paste(., ".RData", sep = "")
   save(unique_locs, file = file.path(data_path, out_file))
+  return(out_file)
 }
 
 #' subsample non-zeros
