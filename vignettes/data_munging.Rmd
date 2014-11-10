@@ -114,9 +114,13 @@ So now, for each chromosome, we will go through and generate a `GRanges` object 
 
 ```{r ln4_capped_granges}
 ln4_files_process <- file.path(use_dir, ln4_files)
-mclapply(ln4_files_process, convert_to_counted, prepend = "ln4")
+ln4_outfiles <- mclapply(ln4_files_process, convert_to_counted, prepend = "ln4")
+ln4_outfiles <- unlist(ln4_outfiles)
 
 ln5_files_process <- file.path(use_dir, dir(use_dir, pattern = "YFM_LN5"))
-mclapply(ln5_files_process, convert_to_counted, prepend = "ln5")
+ln5_outfiles <- mclapply(ln5_files_process, convert_to_counted, prepend = "ln5")
+ln5_outfiles <- unlist(ln5_outfiles)
+
+save(c(ln4_outfiles, ln5_outfiles), file = file.path(use_dir, "summary_files.RData"))
 ```
 
