@@ -121,6 +121,6 @@ ln5_files_process <- file.path(use_dir, dir(use_dir, pattern = "YFM_LN5"))
 ln5_outfiles <- mclapply(ln5_files_process, convert_to_counted, prepend = "ln5")
 ln5_outfiles <- unlist(ln5_outfiles)
 
-save(c(ln4_outfiles, ln5_outfiles), file = file.path(use_dir, "summary_files.RData"))
+save(ln4_outfiles, ln5_outfiles, file = file.path(use_dir, "summary_files.RData"))
 ```
 
