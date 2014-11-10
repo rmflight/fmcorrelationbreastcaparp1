@@ -114,23 +114,22 @@ average_value <- function(granges, use_column = "mcols.signal"){
 #' @import GenomicRanges
 get_overlap_counts <- function(file_list, granges, offset = 0){
   out_overlap <- mclapply(file_list, function(x){
-    tmp <- read.table(x, header = TRUE, sep = ",")
-    tmpRange <- GRanges(seqnames = get_chr(x),
-                        ranges = IRanges(start = tmp$startx, width = 1),
-                        strand = tmp$strand)
-    
-    if (offset != 0){
-      pos_loc <- strand(tmpRange) == "+"
-      tmpRange[pos_loc] <- shift(tmpRange[pos_loc], offset)
-      tmpRange[!pos_loc] <- shift(tmpRange[!pos_loc], -1 * offset)
+    load(x)
+    if (!(exists("unique_locs"))){
+      stop("unique_locs does not exist!", call. = FALSE)
     }
-    countOverlaps(tss_windows, tmpRange, ignore.strand = TRUE)
+    
+    ul_granges_overlap <- findOverlaps(unique_locs, granges)
+    ul_granges_list <- split(queryHits(ul_granges_overlap), subjectHits(ul_granges_overlap))
+    
+    unlist(lapply(ul_granges_list, function(in_overlap){
+      sum(mcols(unique_locs[in_overlap])[, "count"])
+    }))
   })
   
-  out_tss <- lapply(out_overlap, function(in_count){
-    in_count[in_count != 0]
-  })
-  out_tss <- unlist(out_tss)
+  
+  out_tss <- unlist(out_overlap)
+  names(out_tss) <- names(granges)[as.numeric(names(out_tss))]
   return(out_tss)
 }
 
