@@ -124,3 +124,19 @@ ln5_outfiles <- unlist(ln5_outfiles)
 save(ln4_outfiles, ln5_outfiles, file = file.path(use_dir, "summary_files.RData"))
 ```
 
+Finally, we also want to know how many reads we have in each case.
+
+```{r count_reads}
+ln4_counts <- mclapply(ln4_outfiles, function(x){
+  load(file.path(use_dir, x))
+  sum(mcols(unique_locs)[, "count"])
+})
+sum(unlist(ln4_counts))
+
+ln5_counts <- mclapply(ln5_outfiles, function(x){
+  load(file.path(use_dir, x))
+  sum(mcols(unique_locs)[, "count"])
+})
+sum(unlist(ln5_counts))
+```
+
