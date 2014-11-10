@@ -1,3 +1,46 @@
+#' convert to counted GRanges
+#' 
+#' given a set of reads in a delimited file, find the unique locations, count the number of reads at each location,
+#' apply a hard threshold if required, and save the data to an RData file.
+#' 
+#' @param reads_file the file with the reads
+#' @param delim the delimiter to use
+#' @param read_start the column containing the read starts
+#' @param width how wide are the reads
+#' @param scramble_strand should the strand be scrambled (default is \code{TRUE})
+#' @param max_count what is the maximum value that the counts should be
+#' @param prepend text to prepend the out_file name with
+#' @import GenomicRanges
+#' @import magrittr
+#' @export
+#' @return the RData filename
+convert_to_counted <- function(reads_file, delim = ",", read_start = "startx", 
+                               width = 1, strand = "strand", scramble_strand = TRUE, max_count = 6, prepend = ""){
+  
+  tmp_reads <- read.table(reads_file, sep = delim, header = TRUE, stringsAsFactors = FALSE)
+  
+  use_strand <- tmp_reads[, strand]
+  
+  if (scramble_strand){
+    use_strand <- "*"
+  }
+  
+  use_chr <- get_chr(reads_file, "_")
+  
+  tmp_locs <- GRanges(seqnames = use_chr,
+                      ranges = IRanges(start = tmp_reads[, read_start], width = width),
+                      strand = use_strand)
+  
+  unique_locs <- unique(tmp_locs)
+  unique_overlap <- countOverlaps(unique_locs, tmp_locs)
+  unique_overlap[(unique_overlap > max_count)] <- max_count
+  mcols(unique_locs)[, "count"] <- unique_overlap
+  
+  data_path <- dirname(reads_file)
+  out_file <- paste(prepend, use_chr, sep = "_") %>% paste(., ".RData", sep = "")
+  save(unique_locs, file = file.path(data_path, out_file))
+}
+
 #' subsample non-zeros
 #' 
 #' Takes a \code{DataFrame} instance and for the two columns indicated, returns a subset of points that are non-zero in one or both of 
