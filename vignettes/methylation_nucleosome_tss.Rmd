@@ -50,7 +50,7 @@ methyl_names <- strtrim(methyl_names, nchar(methyl_names) - 4)
 
 names(methyl_files) <- methyl_names
 
-methyl_data <- lapply(methyl_files, function(x){
+methyl_data <- mclapply(methyl_files, function(x){
   tmp <- read.table(x, header = TRUE, sep = ",")
   names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
   methyl_tmp <- GRanges(seqnames = tmp$chrom,
