@@ -73,7 +73,7 @@ methyl_data <- mclapply(methyl_files, function(x){
 We will also get the total number of reads from *LN4* and *LN5* samples.
 
 ```{r}
-total_reads <- c(ln4 = 60486202, ln5 = 54125517)
+total_reads <- c(ln4 = 60228591, ln5 = 53669637)
 ```
 
 
