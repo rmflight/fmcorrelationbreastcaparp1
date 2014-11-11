@@ -80,11 +80,11 @@ total_reads <- c(ln4 = 60228591, ln5 = 53669637)
 Now lets go through the *parp1* nucleosome data. For each chromosome, we will count those reads that are within the 2kb TSS window, assuming that the reads correspond to nucleosomes.
 
 ```{r get_chromosome_within_tss}
-ln4_files <- file.path(data_dir, dir(data_dir, pattern = "YFM_LN4_chr"))
+ln4_files <- file.path(data_dir, dir(data_dir, pattern = "ln4_chr"))
 
 ln4_overlap <- get_overlap_counts(ln4_files, tss_windows)
 
-ln5_files <- file.path(data_dir, dir(data_dir, pattern = "YFM_LN5_chr"))
+ln5_files <- file.path(data_dir, dir(data_dir, pattern = "ln5_chr"))
 ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
 ```
 
