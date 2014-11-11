@@ -75,6 +75,7 @@ use_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/p
 library(parallel)
 library(parp1)
 library(magrittr)
+library(GenomicRanges)
 options(mc.cores = 10)
 ln4_reads <- mclapply(file.path(use_dir, ln4_files), function(in_file){
   chr_data <- read.table(in_file, header = TRUE, sep = ",")
@@ -112,7 +113,7 @@ And there we have it! At 6 reads, we are accounting for 99% of the reads availab
 
 So now, for each chromosome, we will go through and generate a `GRanges` object with unique locations and the number of counts at each position, capping the counts at **6** for any given position.
 
-```{r ln4_capped_granges}
+```{r ln4_capped_granges, eval = FALSE}
 ln4_files_process <- file.path(use_dir, ln4_files)
 ln4_outfiles <- mclapply(ln4_files_process, convert_to_counted, prepend = "ln4")
 ln4_outfiles <- unlist(ln4_outfiles)
@@ -126,7 +127,7 @@ save(ln4_outfiles, ln5_outfiles, file = file.path(use_dir, "summary_files.RData"
 
 Finally, we also want to know how many reads we have in each case.
 
-```{r count_reads}
+```{r count_reads, eval = FALSE}
 ln4_counts <- mclapply(ln4_outfiles, function(x){
   load(file.path(use_dir, x))
   sum(mcols(unique_locs)[, "count"])
@@ -138,5 +139,59 @@ ln5_counts <- mclapply(ln5_outfiles, function(x){
   sum(mcols(unique_locs)[, "count"])
 })
 sum(unlist(ln5_counts))
+```
+
+## TSS Regions
+
+To get association between transcription start site (TSS) regions and other features, we should have the TSS's and their windows already saved in a file.
+
+```{r get_tss_windows, eval = FALSE}
+tss_file <- file.path(use_dir, "ensGene_TTSS.csv")
+tss_data <- read.table(tss_file, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+tss_regions <- GRanges(seqnames = tss_data$chrom,
+                       strand = tss_data$strand,
+                       ranges = IRanges(start = tss_data$txStart,
+                                        end = tss_data$txEnd),
+                       names = tss_data$name)
+rm(tss_data)
+
+tss_windows <- GRanges(seqnames = seqnames(tss_regions),
+                       strand = strand(tss_regions),
+                       ranges = IRanges(start = start(tss_regions) - 1000,
+                                        end = start(tss_regions) + 1000))
+names(tss_windows) <- mcols(tss_regions)$names
+save(tss_windows, file = file.path(use_dir, "tss_windows.RData"))
+```
+
+
+## TSS with Parp1
+
+In addition, we can generate the counts of Parp1 nucleosomes with the TSS's and save them.
+
+```{r parp1_overlap_tss, eval=FALSE}
+ln4_files <- file.path(use_dir, dir(use_dir, pattern = "ln4_chr"))
+
+ln4_overlap <- get_overlap_counts(ln4_files, tss_windows)
+
+ln5_files <- file.path(use_dir, dir(use_dir, pattern = "ln5_chr"))
+ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
+```
+
+```{r parp1_dataframe, eval=FALSE}
+total_reads <- c(ln4 = 60228591, ln5 = 53669637)
+n_tss <- length(tss_windows)
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = 4), row.names = names(tss_windows))
+
+colnames(overlap_values) <- c("ln4", "ln5", "ln4_frac", "ln5_frac")
+
+overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
+overlap_values[names(ln4_overlap), "ln4"] <- ln4_overlap
+overlap_values[, "ln4_frac"] <- overlap_values[, "ln4"] / total_reads["ln4"]
+overlap_values[, "ln5_frac"] <- overlap_values[, "ln5"] / total_reads["ln5"]
+```
+
+```{r add_to_tss, eval=FALSE}
+mcols(tss_windows) <- overlap_values
+save(tss_windows, file = file.path(use_dir, "tss_parp1.RData"))
 ```
 
