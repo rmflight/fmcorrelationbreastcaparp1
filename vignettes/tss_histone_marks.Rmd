@@ -1,6 +1,6 @@
 # Overlap with Histone Marks within Transcription Start Sites
 
-The methylation peaks will be read in from the right files. 
+The histone peaks will be read in from the right files. 
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='CairoPNG')
@@ -18,7 +18,7 @@ library(parp1)
 library(BiocParallel)
 ```
 
-Based on previous manuscripts, it may be a good idea to restrict both the methylation and parp1 reads to a 2kb window surrounding annotated transcription start sites (tss). 
+Based on previous manuscripts, it may be a good idea to restrict both the histone and parp1 reads to a 2kb window surrounding annotated transcription start sites (tss). 
 
 ```{r read_tss}
 tss_file <- file.path(data_dir, "ensGene_TTSS.csv")
@@ -41,33 +41,33 @@ tss_windows <- GRanges(seqnames = seqnames(tss_regions),
 names(tss_windows) <- mcols(tss_regions)$names
 ```
 
-Now we read in the methylation data.
+Now we read in the histone marks data.
 
-```{r read_methylation}
-methyl_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
-methyl_names <- strsplit(methyl_files, "_") %>% sapply(., function(x){x[6]})
-methyl_names <- strtrim(methyl_names, nchar(methyl_names) - 4)
+```{r read_histone}
+histone_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
+histone_names <- strsplit(histone_files, "_") %>% sapply(., function(x){x[6]})
+histone_names <- strtrim(histone_names, nchar(histone_names) - 4)
 
-names(methyl_files) <- methyl_names
+names(histone_files) <- histone_names
 
-methyl_data <- mclapply(methyl_files, function(x){
+histone_data <- mclapply(histone_files, function(x){
   tmp <- read.table(x, header = TRUE, sep = ",")
   names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
-  methyl_tmp <- GRanges(seqnames = tmp$chrom,
+  histone_tmp <- GRanges(seqnames = tmp$chrom,
           ranges = IRanges(start = tmp$start, end = tmp$end),
           mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
   rm(tmp)
   
-  methyl_overlap <- findOverlaps(methyl_tmp, tss_windows, minoverlap = 80, ignore.strand = TRUE)
-  methyl_2_tss <- split(methyl_tmp[queryHits(methyl_overlap)], names(tss_windows)[subjectHits(methyl_overlap)])
+  histone_overlap <- findOverlaps(histone_tmp, tss_windows, minoverlap = 80, ignore.strand = TRUE)
+  histone_2_tss <- split(histone_tmp[queryHits(histone_overlap)], names(tss_windows)[subjectHits(histone_overlap)])
   
-  methyl_vals <- bplapply(methyl_2_tss, function(in_tss){
+  histone_vals <- bplapply(histone_2_tss, function(in_tss){
     average_value(in_tss)
   })
-  methyl_vals <- unlist(methyl_vals)
-  methyl_vals
+  histone_vals <- unlist(histone_vals)
+  histone_vals
 })
-#methyl_data <- GRangesList(methyl_data)
+#histone_data <- GRangesList(histone_data)
 ```
 
 We will also get the total number of reads from *LN4* and *LN5* samples.
@@ -90,15 +90,15 @@ ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
 
 So now we will create the `DataFrame` that can be added to the original transcript start site windows.
 
-```{r methyl_sample_dataframe}
+```{r histone_sample_dataframe}
 n_tss <- length(tss_windows)
-overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(methyl_data) + 4), row.names = names(tss_windows))
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(histone_data) + 4), row.names = names(tss_windows))
 
-colnames(overlap_values) <- c(names(methyl_data), "ln4", "ln5", "ln4_frac", "ln5_frac")
+colnames(overlap_values) <- c(names(histone_data), "ln4", "ln5", "ln4_frac", "ln5_frac")
 
-for (i_name in names(methyl_data)){
-  use_names <- names(methyl_data[[i_name]])
-  overlap_values[use_names, i_name] <- methyl_data[[i_name]]
+for (i_name in names(histone_data)){
+  use_names <- names(histone_data[[i_name]])
+  overlap_values[use_names, i_name] <- histone_data[[i_name]]
 }
 
 overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
@@ -123,7 +123,7 @@ cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(names(methyl_data), c("ln4", "ln4_frac", "ln5", "ln5_frac"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(names(histone_data), c("ln4", "ln4_frac", "ln5", "ln5_frac"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   print(i_row)
   correlate_non_zero(overlap_values, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
