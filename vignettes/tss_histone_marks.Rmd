@@ -18,39 +18,21 @@ library(parp1)
 library(BiocParallel)
 ```
 
-Based on previous manuscripts, it may be a good idea to restrict both the histone and parp1 reads to a 2kb window surrounding annotated transcription start sites (tss). 
+In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
 
-```{r read_tss}
-tss_file <- file.path(data_dir, "ensGene_TTSS.csv")
-tss_data <- read.table(tss_file, header = TRUE, sep = ",", stringsAsFactors = FALSE)
-tss_regions <- GRanges(seqnames = tss_data$chrom,
-                       strand = tss_data$strand,
-                       ranges = IRanges(start = tss_data$txStart,
-                                        end = tss_data$txEnd),
-                       names = tss_data$name)
-rm(tss_data)
+```{r load_tss_parp1}
+load(file.path(data_dir, "tss_parp1.RData"))
 ```
 
-Generate 2kb regions around each *tss*.
 
-```{r windowed_tss}
-tss_windows <- GRanges(seqnames = seqnames(tss_regions),
-                       strand = strand(tss_regions),
-                       ranges = IRanges(start = start(tss_regions) - 1000,
-                                        end = start(tss_regions) + 1000))
-names(tss_windows) <- mcols(tss_regions)$names
-```
-
-Now we read in the histone marks data.
-
-```{r read_histone}
+```{r read_histone, eval=FALSE}
 histone_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
 histone_names <- strsplit(histone_files, "_") %>% sapply(., function(x){x[6]})
 histone_names <- strtrim(histone_names, nchar(histone_names) - 4)
 
 names(histone_files) <- histone_names
 
-histone_data <- mclapply(histone_files, function(x){
+histone_data <- lapply(histone_files, function(x){
   tmp <- read.table(x, header = TRUE, sep = ",")
   names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
   histone_tmp <- GRanges(seqnames = tmp$chrom,
@@ -70,52 +52,38 @@ histone_data <- mclapply(histone_files, function(x){
 #histone_data <- GRangesList(histone_data)
 ```
 
-We will also get the total number of reads from *LN4* and *LN5* samples.
-
-```{r}
-total_reads <- c(ln4 = 60228591, ln5 = 53669637)
-```
-
-
-Now lets go through the *parp1* nucleosome data. For each chromosome, we will count those reads that are within the 2kb TSS window, assuming that the reads correspond to nucleosomes.
-
-```{r get_chromosome_within_tss}
-ln4_files <- file.path(data_dir, dir(data_dir, pattern = "ln4_chr"))
-
-ln4_overlap <- get_overlap_counts(ln4_files, tss_windows)
-
-ln5_files <- file.path(data_dir, dir(data_dir, pattern = "ln5_chr"))
-ln5_overlap <- get_overlap_counts(ln5_files, tss_windows)
-```
-
 So now we will create the `DataFrame` that can be added to the original transcript start site windows.
 
-```{r histone_sample_dataframe}
+```{r histone_sample_dataframe, eval=FALSE}
 n_tss <- length(tss_windows)
-overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(histone_data) + 4), row.names = names(tss_windows))
+overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(histone_data)), row.names = names(tss_windows))
 
-colnames(overlap_values) <- c(names(histone_data), "ln4", "ln5", "ln4_frac", "ln5_frac")
+colnames(overlap_values) <- names(histone_data)
 
 for (i_name in names(histone_data)){
   use_names <- names(histone_data[[i_name]])
   overlap_values[use_names, i_name] <- histone_data[[i_name]]
 }
 
-overlap_values[names(ln5_overlap), "ln5"] <- ln5_overlap
-overlap_values[names(ln4_overlap), "ln4"] <- ln4_overlap
-overlap_values[, "ln4_frac"] <- overlap_values[, "ln4"] / total_reads["ln4"]
-overlap_values[, "ln5_frac"] <- overlap_values[, "ln5"] / total_reads["ln5"]
+tss_histone_parp1 <- tss_windows
+mcols(tss_histone_parp1) <- cbind(mcols(tss_histone_parp1), overlap_values)
+save(tss_histone_parp1, file = file.path(data_dir, "tss_histone_parp1.RData"))
 ```
 
 
 Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 10000 points to see what exactly is going on.
 
+```{r load_data}
+load(file.path(data_dir, "tss_histone_parp1.RData"))
+```
+
+
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(overlap_values, c("H3k04me3k", "ln4"), non_zero = "both", n_points = 10000)
+h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_histone_parp1), c("H3k04me3k", "ln4"), non_zero = "both", n_points = 10000)
 ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(overlap_values, c("H3K27ac", "ln4"), non_zero = "both", n_points = 10000)
+h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_histone_parp1), c("H3K27ac", "ln4"), non_zero = "both", n_points = 10000)
 ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 ```
@@ -123,10 +91,10 @@ cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(names(histone_data), c("ln4", "ln4_frac", "ln5", "ln5_frac"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(c("H3k04me3k", "H3K27ac", "H3K27me3", "H3K36me3", "H3K9me3"), c("ln4", "ln5"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
-  print(i_row)
-  correlate_non_zero(overlap_values, as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+  #print(i_row)
+  correlate_non_zero(mcols(tss_histone_parp1), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
 })
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 out_cor <- do.call(rbind, out_cor)
@@ -137,7 +105,7 @@ out_cor
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
-  subpoints <- subsample_nonzeros(overlap_values, use_vars, non_zero = "both", n_points = 10000)
+  subpoints <- subsample_nonzeros(mcols(tss_histone_parp1), use_vars, non_zero = "both", n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
 ```
