@@ -1,0 +1,99 @@
+# Overlap with Methylation
+
+The methylation peaks will be read in from the right files. 
+
+```{r setupKnitr, echo=FALSE, results='hide'}
+knitr::opts_chunk$set(dev='CairoPNG')
+```
+
+```{r use_dir}
+data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+library(GenomicRanges)
+library(magrittr)
+options(mc.cores = 10)
+library(parallel)
+library(ggplot2)
+library(rmfNotifier)
+library(parp1)
+library(BiocParallel)
+```
+
+This analysis uses the 2KB windows around each TSS with the Parp1 counts already computed.
+
+```{r load_tss, eval=FALSE}
+load(file.path(data_dir, "tss_parp1.RData"))
+```
+
+
+Now we read in the methylation data.
+
+```{r read_methylation, eval=FALSE}
+methyl_file <- file.path(data_dir, "DNA_Methylation_MCF7.csv")
+
+methyl_data <- read.table(methyl_file, header = TRUE, sep = ",")
+methyl_reads <- GRanges(seqnames = methyl_data[, "chrom"],
+                        ranges = IRanges(start = methyl_data[, "chromStart"], width = 1))
+mcols(methyl_reads) <- DataFrame(value = methyl_data[, "value"], coverage = methyl_data[, "coverage"])
+
+methyl_overlap <- findOverlaps(methyl_reads, tss_windows, ignore.strand = TRUE)
+methyl_2_tss <- split(methyl_reads[queryHits(methyl_overlap)], names(tss_windows)[subjectHits(methyl_overlap)])
+  
+methyl_vals <- mclapply(methyl_2_tss, function(in_tss){
+  average_value(in_tss, "value")
+})
+methyl_vals <- unlist(methyl_vals)
+
+methyl_coverage <- mclapply(methyl_2_tss, function(in_tss){
+  average_value(in_tss, "coverage")
+})
+methyl_coverage <- unlist(methyl_coverage)
+#methyl_data <- GRangesList(methyl_data)
+```
+
+```{r add_methyl, eval=FALSE}
+use_names <- names(methyl_vals)
+mcols(tss_windows)$methyl <- 0
+tmp_methyl <- rep(0, length(tss_windows))
+names(tmp_methyl) <- names(tss_windows)
+tmp_methyl[use_names] <- methyl_vals
+mcols(tss_windows)$methyl <- tmp_methyl
+tss_methyl_parp1 <- tss_windows
+save(tss_methyl_parp1, file = file.path(data_dir, "tss_methyl_parp1.RData"))
+```
+
+
+Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 10000 points to see what exactly is going on.
+
+```{r load_saved}
+load(file.path(data_dir, "tss_methyl_parp1.RData"))
+```
+
+
+```{r graphit}
+methyl_v_ln4 <- subsample_nonzeros(mcols(tss_methyl_parp1), c("methyl", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(methyl_v_ln4, aes(x = methyl, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(methyl_v_ln4[,1]), log10(methyl_v_ln4[,2]))
+```
+
+Cool. Now we are showing some promise. Let's do them all.
+
+```{r grab_all}
+all_comb <- expand.grid("methyl", c("ln4", "ln5"), stringsAsFactors = FALSE)
+out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  correlate_non_zero(mcols(tss_methyl_parp1), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+})
+all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
+out_cor <- do.call(rbind, out_cor)
+rownames(out_cor) <- all_comb_names
+out_cor
+```
+
+```{r graphs}
+out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  use_vars <- as.character(all_comb[i_row,])
+  subpoints <- subsample_nonzeros(mcols(tss_methyl_parp1), use_vars, non_zero = "both", n_points = 10000)
+  ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
+})
+out_graphs[[1]]
+out_graphs[[2]]
+```
