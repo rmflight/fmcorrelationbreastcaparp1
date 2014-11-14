@@ -212,3 +212,39 @@ find_non_zeros <- function(data, data_columns, log_transform = TRUE){
   
   return(nz_index)
 }
+
+#' run bootstrapped correlation
+#' 
+#' given a set of points for correlations, generate bootstrapped samples and calculate a 95%CI or SD
+#' 
+#' @param data the data we are working with
+#' @param data_columns which columns to use
+#' @param log_transform do a log transformation on the data before calculating the correlation
+#' @param n_boot how many bootstrap samples to generate
+#' @return correlation value and standard deviation
+#' @export
+bootstrap_correlation <- function(data, data_columns, log_transform = TRUE, n_boot = 1000){
+  nz_index <- find_non_zeros(data, data_columns, log_transform)
+  
+  x <- data[nz_index, data_columns[1]]
+  y <- data[nz_index, data_columns[2]]
+  
+  if (log_transform){
+    x <- log(x)
+    y <- log(y)
+  }
+  
+  c_value <- cor(x, y)
+  
+  n_sample <- length(x)
+  
+  bootstrap_cor <- lapply(seq(1, n_boot), function(in_rep){
+    use_boot <- sample(n_sample, n_sample, replace = TRUE)
+    cor(x[use_boot], y[use_boot])
+  })
+  bootstrap_cor <- unlist(bootstrap_cor)
+  sd_cor <- sd(bootstrap_cor)
+  ci_val <- sd_cor * 1.96
+  ci_range <- c(c_value - ci_val, c_value + ci_val)
+  return(c(cor = c_value, ci = ci_range))
+}
