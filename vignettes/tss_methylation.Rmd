@@ -52,11 +52,16 @@ methyl_coverage <- unlist(methyl_coverage)
 
 ```{r add_methyl, eval=FALSE}
 use_names <- names(methyl_vals)
-mcols(tss_windows)$methyl <- 0
+mcols(tss_windows)$methyl_value <- 0
+mcols(tss_windows)$methyl_coverage <- 0
 tmp_methyl <- rep(0, length(tss_windows))
 names(tmp_methyl) <- names(tss_windows)
 tmp_methyl[use_names] <- methyl_vals
-mcols(tss_windows)$methyl <- tmp_methyl
+mcols(tss_windows)$methyl_value <- tmp_methyl
+tmp_methyl <- rep(0, length(tss_windows))
+names(tmp_methyl) <- names(tss_windows)
+tmp_methyl[use_names] <- methyl_coverage
+mcols(tss_windows)$methyl_coverage <- tmp_methyl
 tss_methyl_parp1 <- tss_windows
 save(tss_methyl_parp1, file = file.path(data_dir, "tss_methyl_parp1.RData"))
 ```
@@ -70,15 +75,19 @@ load(file.path(data_dir, "tss_methyl_parp1.RData"))
 
 
 ```{r graphit}
-methyl_v_ln4 <- subsample_nonzeros(mcols(tss_methyl_parp1), c("methyl", "ln4"), non_zero = "both", n_points = 10000)
-ggplot(methyl_v_ln4, aes(x = methyl, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+methyl_v_ln4 <- subsample_nonzeros(mcols(tss_methyl_parp1), c("methyl_value", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(methyl_v_ln4, aes(x = methyl_value, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(methyl_v_ln4[,1]), log10(methyl_v_ln4[,2]))
+
+methyl_cov_v_ln4 <- subsample_nonzeros(mcols(tss_methyl_parp1), c("methyl_coverage", "ln4"), non_zero = "both", n_points = 10000)
+ggplot(methyl_cov_v_ln4, aes(x = methyl_coverage, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(methyl_cov_v_ln4[,1]), log10(methyl_cov_v_ln4[,2]))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid("methyl", c("ln4", "ln5"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(c("methyl_value", "methyl_coverage"), c("ln4", "ln5"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   correlate_non_zero(mcols(tss_methyl_parp1), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
 })
@@ -87,6 +96,16 @@ out_cor <- do.call(rbind, out_cor)
 rownames(out_cor) <- all_comb_names
 out_cor
 ```
+
+```{r ci_cor_95}
+out_cor2 <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  bootstrap_correlation(mcols(tss_methyl_parp1), as.character(all_comb[i_row,]), log_transform = TRUE)
+})
+out_cor2 <- do.call(rbind, out_cor2)
+rownames(out_cor2) <- all_comb_names
+out_cor2
+```
+
 
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
