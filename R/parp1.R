@@ -188,3 +188,34 @@ correlate_non_zero <- function(data, data_columns, log_transform = TRUE, test = 
   }
 }
 
+#' find non-zeros
+#' 
+#' given a \code{data.frame}, find the non-zero entries in each case
+#' 
+#' @param data the data we are working with
+#' @param data_columns which columns to use
+#' @param log_transform do a log transformation on the data before identifying zeros
+#' 
+#' @export
+#' @return indices into the original data that are not zero
+find_non_zeros <- function(data, data_columns, log_transform = TRUE){
+  
+  # this list holds the non-zero, and other stuff
+  non_zero_entries <- lapply(data_columns, function(x){
+    tmp_data <- data[, x]
+    if (log_transform){
+      tmp_data <- log(tmp_data)
+    }
+    (tmp_data != 0) & (!(is.infinite(tmp_data))) & (!(is.na(tmp_data))) & (!(is.nan(tmp_data))) 
+  })
+  
+  # name them so we can access them
+  names(non_zero_entries) <- data_columns
+  keep_data <- non_zero_entries[data_columns]
+  
+  non_zero_entries <- do.call("&", non_zero_entries)
+  nz_index <- which(non_zero_entries)
+  names(nz_index) <- NULL
+  
+  return(nz_index)
+}
