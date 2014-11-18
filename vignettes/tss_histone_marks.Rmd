@@ -13,42 +13,47 @@ library(magrittr)
 options(mc.cores = 10)
 library(parallel)
 library(ggplot2)
-library(rmfNotifier)
 library(parp1)
 library(BiocParallel)
 ```
 
-In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
+In the initial analysis, we will use the TSS windows. 
 
 ```{r load_tss_parp1}
-load(file.path(data_dir, "tss_parp1.RData"))
+load(file.path(data_dir, "tss_windows.RData"))
+load(file.path(data_dir, "ln4_reads_unique.RData"))
+load(file.path(data_dir, "ln5_reads_unique.RData"))
+```
+
+Calculate the weighted coverage of the ln4 and ln5 sample reads, and then sum the reads in each TSS window.
+
+```{r ln4_ln5_counts}
+ln4_cov <- coverage(ln4_unique, weight = "n_count")
+ln5_cov <- coverage(ln5_unique, weight = "n_count")
+
+tss_windows <- binned_function(tss_windows, ln4_cov, "sum", "ln4_read")
+tss_windows <- binned_function(tss_windows, ln5_cov, "sum", "ln5_read")
 ```
 
 
-```{r read_histone, eval=FALSE}
+```{r read_histone}
 histone_files <- file.path(data_dir, dir(data_dir, pattern = "CTCF_narrow_peak_H"))
 histone_names <- strsplit(histone_files, "_") %>% sapply(., function(x){x[6]})
 histone_names <- strtrim(histone_names, nchar(histone_names) - 4)
 
 names(histone_files) <- histone_names
 
-histone_data <- lapply(histone_files, function(x){
-  tmp <- read.table(x, header = TRUE, sep = ",")
-  names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
-  histone_tmp <- GRanges(seqnames = tmp$chrom,
-          ranges = IRanges(start = tmp$start, end = tmp$end),
-          mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
-  rm(tmp)
-  
-  histone_overlap <- findOverlaps(histone_tmp, tss_windows, minoverlap = 80, ignore.strand = TRUE)
-  histone_2_tss <- split(histone_tmp[queryHits(histone_overlap)], names(tss_windows)[subjectHits(histone_overlap)])
-  
-  histone_vals <- bplapply(histone_2_tss, function(in_tss){
-    average_value(in_tss)
-  })
-  histone_vals <- unlist(histone_vals)
-  histone_vals
-})
+for (i_histone in histone_names){
+	tmp <- read.table(histone_files[i_histone], header = TRUE, sep = ",")
+	names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
+	 histone_tmp <- GRanges(seqnames = tmp$chrom,
+				          ranges = IRanges(start = tmp$start, end = tmp$end),
+					            mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
+	rm(tmp)
+
+	histone_cov <- coverage(histone_tmp, weight = "mcols.signal")
+	tss_windows <- binned_function(tss_windows, histone_cov, "mean", i_histone)
+}
 #histone_data <- GRangesList(histone_data)
 ```
 
