@@ -1,3 +1,36 @@
+#' calculate binned averages
+#' 
+#' given a set of bins and an RLE-list object, calculate average value
+#' 
+#' Adapted from documentation of \code{tileGenome}
+#' 
+#' @param bins a \code{GRanges} object representing genomic bins
+#' @param numvar a named \code{RleList} object representing numerical variable along the genome
+#' @param mcolname the name of the metadata column containing the ginned average of the object
+#' @export
+#' @return bins with the \code{mcolname} containing the binned average
+binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
+  stopifnot(is(bins, "GRanges"))
+  stopifnot(is(numvar, "RleList"))
+  stopifnot(identical(seqlevels(bins), names(numvar)))
+  
+  bins_per_seqname <- split(ranges(bins), as.character(seqnames(bins)))
+  
+  means_list <- mclapply(names(numvar),
+                         function(seqname){
+                           views <- Views(numvar[[seqname]],
+                                         bins_per_seqname[[seqname]])
+                           switch(binfun,
+                                  mean = viewMeans(views),
+                                  sum = viewSums(views),
+                                  min = viewMins(views),
+                                  max = viewMaxs(views))
+                         })
+  new_mcol <- unsplit(means_list, as.factor(as.character(seqnames(bins))))
+  mcols(bins)[[mcolname]] <- new_mcol
+  return(bins)
+}
+
 #' convert to counted GRanges
 #' 
 #' given a set of reads in a delimited file, find the unique locations, count the number of reads at each location,
