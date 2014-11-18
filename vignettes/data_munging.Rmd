@@ -3,17 +3,17 @@
 ## How many lines of data do we have?
 
 ```{r count_lines}
-ln4_files <- dir("../parp1_data", pattern = "YFM_LN4")
+use_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data/"
+ln4_files <- dir(use_dir, pattern = "YFM_LN4")
 ln4_lines <- sapply(ln4_files, function(x){
-  file_loc <- file.path("../parp1_data", x)
+  file_loc <- file.path(use_dir, x)
   R.utils::countLines(file_loc)
 })
 sum(ln4_lines)
 
-
-ln5_files <- dir("../parp1_data", patter = "YFM_LN5")
+ln5_files <- dir(use_dir, pattern = "YFM_LN5")
 ln5_lines <- sapply(ln5_files, function(x){
-  file_loc <- file.path("../parp1_data", x)
+  file_loc <- file.path(use_dir, x)
   R.utils::countLines(file_loc)
 })
 sum(ln5_lines)
@@ -115,14 +115,48 @@ So now, for each chromosome, we will go through and generate a `GRanges` object 
 
 ```{r ln4_capped_granges, eval = FALSE}
 ln4_files_process <- file.path(use_dir, ln4_files)
-ln4_outfiles <- mclapply(ln4_files_process, convert_to_counted, prepend = "ln4")
-ln4_outfiles <- unlist(ln4_outfiles)
 
+ln4_reads <- GRanges(seqnames = "chr1", ranges = IRanges(start = 1, end = 1), strand = "*")
+
+for (i_file in ln4_files_process){
+	tmp_reads <- read.table(i_file, sep = ",", header = TRUE)
+	use_chr <- get_chr(i_file, "_")
+	ln4_reads <- c(ln4_reads, GRanges(seqnames = use_chr,
+					  ranges = IRanges(start = tmp_reads[, "startx"], width = 1),
+					  strand = "*"))
+}
+ln4_reads <- ln4_reads[2:(length(ln4_reads))]
+save(ln4_reads, file = file.path(use_dir, "ln4_reads_all.RData"))
+
+ln4_unique <- unique(ln4_reads)
+ln4_counts <- countOverlaps(ln4_unique, ln4_reads)
+ln4_counts[(ln4_counts > 6)] <- 6
+mcols(ln4_unique)$n_count <- ln4_counts
+
+save(ln4_unique, file = file.path(use_dir, "ln4_reads_unique.RData"))
+```
+
+```{r ln5_capped_granges, eval = FALSE}
 ln5_files_process <- file.path(use_dir, dir(use_dir, pattern = "YFM_LN5"))
-ln5_outfiles <- mclapply(ln5_files_process, convert_to_counted, prepend = "ln5")
-ln5_outfiles <- unlist(ln5_outfiles)
 
-save(ln4_outfiles, ln5_outfiles, file = file.path(use_dir, "summary_files.RData"))
+ln5_reads <- GRanges(seqnames = "chr1", ranges = IRanges(start = 1, end = 1), strand = "*")
+
+for (i_file in ln5_files_process){
+	tmp_reads <- read.table(i_file, sep = ",", header = TRUE)
+	use_chr <- get_chr(i_file, "_")
+	ln5_reads <- c(ln5_reads, GRanges(seqnames = use_chr,
+		       ranges = IRanges(start = tmp_reads[, "startx"], width = 1),
+		       strand = "*"))
+}
+ln5_reads <- ln5_reads[2:(length(ln5_reads))]
+save(ln5_reads, file = file.path(use_dir, "ln5_reads_all.RData"))
+
+ln5_unique <- unique(ln5_reads)
+ln5_counts <- countOverlaps(ln5_unique, ln5_reads)
+ln5_counts[(ln5_counts > 6)] <- 6
+mcols(ln5_unique)$n_count <- ln5_counts
+
+save(ln5_unique, file = file.path(use_dir, "ln5_reads_unique.RData"))
 ```
 
 Finally, we also want to know how many reads we have in each case.
