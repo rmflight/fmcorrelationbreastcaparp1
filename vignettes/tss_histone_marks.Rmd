@@ -57,38 +57,15 @@ for (i_histone in histone_names){
 #histone_data <- GRangesList(histone_data)
 ```
 
-So now we will create the `DataFrame` that can be added to the original transcript start site windows.
-
-```{r histone_sample_dataframe, eval=FALSE}
-n_tss <- length(tss_windows)
-overlap_values <- DataFrame(matrix(0, nrow = n_tss, ncol = length(histone_data)), row.names = names(tss_windows))
-
-colnames(overlap_values) <- names(histone_data)
-
-for (i_name in names(histone_data)){
-  use_names <- names(histone_data[[i_name]])
-  overlap_values[use_names, i_name] <- histone_data[[i_name]]
-}
-
-tss_histone_parp1 <- tss_windows
-mcols(tss_histone_parp1) <- cbind(mcols(tss_histone_parp1), overlap_values)
-save(tss_histone_parp1, file = file.path(data_dir, "tss_histone_parp1.RData"))
-```
-
-
-Now with the counts in place, we can graph the data and see what we have. Because we have so many points, we will use a sub-sample of 10000 points to see what exactly is going on.
-
-```{r load_data}
-load(file.path(data_dir, "tss_histone_parp1.RData"))
-```
+Now with the Parp1 reads and histone mark signal added to the TSS's, we can start doing some correlations.
 
 
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_histone_parp1), c("H3k04me3k", "ln4"), non_zero = "both", n_points = 10000)
-ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = "both", n_points = 10000)
+ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_histone_parp1), c("H3K27ac", "ln4"), non_zero = "both", n_points = 10000)
+h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = "both", n_points = 10000)
 ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 ```
@@ -96,10 +73,10 @@ cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(c("H3k04me3k", "H3K27ac", "H3K27me3", "H3K36me3", "H3K9me3"), c("ln4", "ln5"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(c("H3k04me3k", "H3K27ac", "H3K27me3", "H3K36me3", "H3K9me3"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
-  correlate_non_zero(mcols(tss_histone_parp1), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+  correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
 })
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 out_cor <- do.call(rbind, out_cor)
