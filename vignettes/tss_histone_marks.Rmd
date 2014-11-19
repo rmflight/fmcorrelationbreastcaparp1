@@ -52,7 +52,7 @@ for (i_histone in histone_names){
 	rm(tmp)
 
 	histone_cov <- coverage(histone_tmp, weight = "mcols.signal")
-	tss_windows <- binned_function(tss_windows, histone_cov, "mean", i_histone)
+	tss_windows <- binned_function(tss_windows, histone_cov, "mean_nozero", i_histone)
 }
 #histone_data <- GRangesList(histone_data)
 ```
@@ -66,7 +66,7 @@ ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + geom_point() + scale
 cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
 
 h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = "both", n_points = 10000)
-ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4)) + geom_point() + scale_y_log10() + scale_x_log10()
+ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
 ```
 
