@@ -18,17 +18,18 @@ rle_mean_nozero <- function(in_rle){
   return(mean_val)
 }
 
-#' calculate binned averages
+#' calculate binned values
 #' 
-#' given a set of bins and an RLE-list object, calculate average value
+#' given a set of genomic bins and an RLE-list object, return value
 #' 
 #' Adapted from documentation of \code{tileGenome}
 #' 
 #' @param bins a \code{GRanges} object representing genomic bins
 #' @param numvar a named \code{RleList} object representing numerical variable along the genome
-#' @param mcolname the name of the metadata column containing the ginned average of the object
+#' @param binfun character string of the function to apply
+#' @param mcolname the name of the metadata column containing the binned value of the object
 #' @export
-#' @return bins with the \code{mcolname} containing the binned average
+#' @return bins with the \code{mcolname} containing the binned value
 binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
   stopifnot(is(bins, "GRanges"))
   stopifnot(is(numvar, "RleList"))
