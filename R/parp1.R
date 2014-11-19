@@ -132,30 +132,13 @@ convert_to_counted <- function(reads_file, delim = ",", read_start = "startx",
 #' 
 #' @param data a \code{DataFrame}
 #' @param data_columns which columns to use
-#' @param non_zero either one of the columns, or "both"
+#' @param log_transform whether or not to log-transform the data
+#' @param non_zero "either" one of the columns, or "both"
 #' @param n_points how many points to sample
 #' @export
 #' @return data.frame
-subsample_nonzeros <- function(data, data_columns, non_zero = "both", n_points = 1000){
-  non_zero_entries <- lapply(data_columns, function(x){
-    data[, x] != 0
-  })
-  names(non_zero_entries) <- data_columns
-  
-  if (non_zero == "both"){
-    use_data <- data_columns
-  } else {
-    use_data <- non_zero
-  }
-  
-  keep_data <- non_zero_entries[use_data]
-  
-  non_zero_entries <- do.call("&", non_zero_entries)
-  nz_index <- which(non_zero_entries)
-  
-  if (length(nz_index) < n_points){
-    n_points <- length(nz_index)
-  }
+subsample_nonzeros <- function(data, data_columns, log_transform = TRUE, non_zero = "either", n_points = 1000){
+  nz_index <- find_non_zeros(data, data_columns, log_transform, non_zero)
   
   sample_index <- sample(nz_index, size = n_points, replace = FALSE)
   return(as.data.frame(data[sample_index, data_columns]))
@@ -238,19 +221,20 @@ get_chr <- function(filename, split_chr){
 #' @param data the data we are working with
 #' @param data_columns which columns to use
 #' @param log_transform do a log transformation on the data before calculating the correlation
+#' @param non_zero "either" or "both" values need to be non-zero
 #' @param test also return a p-value of the correlation?
 #' @return numeric vector
 #' @export
-correlate_non_zero <- function(data, data_columns, log_transform = TRUE, test = TRUE){
+correlate_non_zero <- function(data, data_columns, log_transform = TRUE, non_zero = "either", test = TRUE){
   
-  nz_index <- find_non_zeros(data, data_columns, log_transform)
+  nz_index <- find_non_zeros(data, data_columns, log_transform, non_zero)
     
   x <- data[nz_index, data_columns[1]]
   y <- data[nz_index, data_columns[2]]
   
   if (log_transform){
-    x <- log(x)
-    y <- log(y)
+    x <- log(x + 1)
+    y <- log(y + 1)
   }
   
   c_value <- cor(x, y)
@@ -271,16 +255,17 @@ correlate_non_zero <- function(data, data_columns, log_transform = TRUE, test = 
 #' @param data the data we are working with
 #' @param data_columns which columns to use
 #' @param log_transform do a log transformation on the data before identifying zeros
+#' @param non_zero "either" or "both", how much data *must* be non-zero
 #' 
 #' @export
 #' @return indices into the original data that are not zero
-find_non_zeros <- function(data, data_columns, log_transform = TRUE){
+find_non_zeros <- function(data, data_columns, log_transform = TRUE, non_zero = "either"){
   
   # this list holds the non-zero, and other stuff
   non_zero_entries <- lapply(data_columns, function(x){
     tmp_data <- data[, x]
     if (log_transform){
-      tmp_data <- log(tmp_data)
+      tmp_data <- log(tmp_data + 1)
     }
     (tmp_data != 0) & (!(is.infinite(tmp_data))) & (!(is.na(tmp_data))) & (!(is.nan(tmp_data))) 
   })
@@ -289,8 +274,11 @@ find_non_zeros <- function(data, data_columns, log_transform = TRUE){
   names(non_zero_entries) <- data_columns
   keep_data <- non_zero_entries[data_columns]
   
-  non_zero_entries <- do.call("&", non_zero_entries)
-  nz_index <- which(non_zero_entries)
+  non_zero_logical <- switch(non_zero,
+                             either = do.call("|", non_zero_entries),
+                             both = do.call("&", non_zero_entries))
+  
+  nz_index <- which(non_zero_logical)
   names(nz_index) <- NULL
   
   return(nz_index)
@@ -306,15 +294,15 @@ find_non_zeros <- function(data, data_columns, log_transform = TRUE){
 #' @param n_boot how many bootstrap samples to generate
 #' @return correlation value and standard deviation
 #' @export
-bootstrap_correlation <- function(data, data_columns, log_transform = TRUE, n_boot = 1000){
-  nz_index <- find_non_zeros(data, data_columns, log_transform)
+bootstrap_correlation <- function(data, data_columns, log_transform = TRUE, non_zero = "either", n_boot = 1000){
+  nz_index <- find_non_zeros(data, data_columns, log_transform, non_zero)
   
   x <- data[nz_index, data_columns[1]]
   y <- data[nz_index, data_columns[2]]
   
   if (log_transform){
-    x <- log(x)
-    y <- log(y)
+    x <- log(x + 1)
+    y <- log(y + 1)
   }
   
   c_value <- cor(x, y)
