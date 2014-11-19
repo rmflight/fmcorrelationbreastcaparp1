@@ -9,7 +9,7 @@ rle_mean_nozero <- function(in_rle){
   n_values <- length(in_rle@values)
   zero_vals <- in_rle@values == 0
   
-  if (sum(zero_vals) == n_values){
+  if ((sum(zero_vals) == n_values) || (in_rle@lengths == 0)){
     mean_val <- 0
   } else {
     mean_val <- weighted.mean(in_rle@values[!zero_vals], in_rle@lengths[!zero_vals])
