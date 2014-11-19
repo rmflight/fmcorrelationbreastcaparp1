@@ -15,6 +15,7 @@ library(parallel)
 library(ggplot2)
 library(parp1)
 library(BiocParallel)
+library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 
 In the initial analysis, we will use the TSS windows. 
@@ -87,7 +88,50 @@ out_cor
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
-  subpoints <- subsample_nonzeros(mcols(tss_histone_parp1), use_vars, non_zero = "both", n_points = 10000)
+  subpoints <- subsample_nonzeros(mcols(tss_windows), use_vars, non_zero = "either", n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
 ```
+
+
+### Genome Wide Comparison
+
+Are these correlations a result of association with the TSS's? One way to test this is to set up a calculation genome-wide.
+
+```{r genome_tiles}
+genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
+
+genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "ln4_read")
+genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "ln5_read")
+```
+
+```{r genome_histone_marks}
+for (i_histone in histone_names){
+  tmp <- read.table(histone_files[i_histone], header = TRUE, sep = ",")
+	names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
+	histone_tmp <- GRanges(seqnames = tmp$chrom,
+				          ranges = IRanges(start = tmp$start, end = tmp$end),
+					            mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
+	rm(tmp)
+
+	histone_cov <- coverage(histone_tmp, weight = "mcols.signal")
+	genome_tiles <- binned_function(genome_tiles, histone_cov, "mean_nozero", i_histone)
+}
+```
+
+```{r genome_graph_test}
+genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k04me3k", "ln4_read"), non_zero = "either", n_points = 10000)
+ggplot(genome_h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
+```
+
+```{r genome_cor}
+genome_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
+  #print(i_row)
+  correlate_non_zero(mcols(genome_tiles), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+})
+all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
+genome_cor <- do.call(rbind, genome_cor)
+rownames(genome_cor) <- all_comb_names
+genome_cor
+```
+
