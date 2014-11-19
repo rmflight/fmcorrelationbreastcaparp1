@@ -54,7 +54,7 @@ binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
                            views <- Views(numvar[[seqname]],
                                          bins_per_seqname[[seqname]])
                            switch(binfun,
-                                  mean_nozero = viewApply(views, rle_mean_nozero)
+                                  mean_nozero = viewApply(views, rle_mean_nozero),
                                   mean = viewMeans(views),
                                   sum = viewSums(views),
                                   min = viewMins(views),
