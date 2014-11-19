@@ -1,3 +1,23 @@
+#' calculate Rle mean without zeros
+#' 
+#' Given an \code{Rle} with possible zeros, first remove the zeros, and then calculate the weighted mean
+#' 
+#' @param in_rle the \code{Rle} to calculate the non-zero mean for
+#' @return a numeric value
+#' @export
+rle_mean_nozero <- function(in_rle){
+  n_values <- length(in_rle@values)
+  zero_vals <- in_rle@values == 0
+  
+  if (sum(zero_vals) == n_values){
+    mean_val <- 0
+  } else {
+    mean_val <- weighted.mean(in_rle@values[!zero_vals], in_rle@lengths[!zero_vals])
+  }
+  
+  return(mean_val)
+}
+
 #' calculate binned averages
 #' 
 #' given a set of bins and an RLE-list object, calculate average value
@@ -34,6 +54,7 @@ binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
                            views <- Views(numvar[[seqname]],
                                          bins_per_seqname[[seqname]])
                            switch(binfun,
+                                  mean_nozero = viewApply(views, rle_mean_nozero)
                                   mean = viewMeans(views),
                                   sum = viewSums(views),
                                   min = viewMins(views),
