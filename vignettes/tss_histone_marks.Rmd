@@ -61,13 +61,13 @@ Now with the Parp1 reads and histone mark signal added to the TSS's, we can star
 
 
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = "both", n_points = 10000)
+h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = "either", n_points = 10000)
 ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(h3k04me3k_v_ln4[,1]), log10(h3k04me3k_v_ln4[,2]))
+cor(log10(h3k04me3k_v_ln4[,1]+1), log10(h3k04me3k_v_ln4[,2]+1))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = "both", n_points = 10000)
+h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = "either", n_points = 10000)
 ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(h3k27ac_v_ln4[,1]), log10(h3k27ac_v_ln4[,2]))
+cor(log10(h3k27ac_v_ln4[,1]+1), log10(h3k27ac_v_ln4[,2]+1))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
