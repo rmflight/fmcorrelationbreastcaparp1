@@ -61,12 +61,17 @@ for (i_histone in histone_names){
 Now with the Parp1 reads and histone mark signal added to the TSS's, we can start doing some correlations.
 
 
+```{r set_non_zero}
+non_zero <- "both"
+```
+
+
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = "either", n_points = 10000)
+h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = non_zero, n_points = 10000)
 ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k04me3k_v_ln4[,1]+1), log10(h3k04me3k_v_ln4[,2]+1))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = "either", n_points = 10000)
+h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = non_zero, n_points = 10000)
 ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k27ac_v_ln4[,1]+1), log10(h3k27ac_v_ln4[,2]+1))
 ```
@@ -77,7 +82,7 @@ Cool. Now we are showing some promise. Let's do them all.
 all_comb <- expand.grid(c("H3k04me3k", "H3K27ac", "H3K27me3", "H3K36me3", "H3K9me3"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
-  correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+  correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, non_zero = non_zero, test = TRUE)
 })
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 out_cor <- do.call(rbind, out_cor)
@@ -88,7 +93,7 @@ out_cor
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
-  subpoints <- subsample_nonzeros(mcols(tss_windows), use_vars, non_zero = "either", n_points = 10000)
+  subpoints <- subsample_nonzeros(mcols(tss_windows), use_vars, non_zero = non_zero, n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
 ```
@@ -120,14 +125,15 @@ for (i_histone in histone_names){
 ```
 
 ```{r genome_graph_test}
-genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k04me3k", "ln4_read"), non_zero = "either", n_points = 10000)
+genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k04me3k", "ln4_read"), non_zero = non_zero, n_points = 10000)
 ggplot(genome_h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
+cor(log(genome_h3k04me3k_v_ln4[,1]+1), log(genome_h3k04me3k_v_ln4[,2]+1))
 ```
 
 ```{r genome_cor}
 genome_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
-  correlate_non_zero(mcols(genome_tiles), as.character(all_comb[i_row,]), log_transform = TRUE, test = TRUE)
+  correlate_non_zero(mcols(genome_tiles), as.character(all_comb[i_row,]), log_transform = TRUE, non_zero = non_zero, test = TRUE)
 })
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 genome_cor <- do.call(rbind, genome_cor)

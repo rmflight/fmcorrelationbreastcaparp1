@@ -1,0 +1,57 @@
+# Correlation of transcript abundance and Parp1 at TSS
+
+```{r setupKnitr, echo=FALSE, results='hide'}
+knitr::opts_chunk$set(dev='CairoPNG')
+```
+
+```{r use_dir}
+data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data/"
+library(GenomicRanges)
+library(magrittr)
+options(mc.cores = 10)
+library(parallel)
+library(ggplot2)
+library(rmfNotifier)
+library(parp1)
+library(BiocParallel)
+library(GEOquery)
+library("hgu133plus2.db")
+```
+
+In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
+
+```{r load_tss_parp1}
+load(file.path(data_dir, "tss_windows.RData"))
+load(file.path(data_dir, "ln4_reads_unique.RData"))
+load(file.path(data_dir, "ln5_reads_unique.RData"))
+```
+
+Calculate the weighted coverage of the ln4 and ln5 sample reads, and then sum the reads in each TSS window.
+
+```{r ln4_ln5_counts}
+ln4_cov <- coverage(ln4_unique, weight = "n_count")
+ln5_cov <- coverage(ln5_unique, weight = "n_count")
+
+tss_windows <- binned_function(tss_windows, ln4_cov, "sum", "ln4_read")
+tss_windows <- binned_function(tss_windows, ln5_cov, "sum", "ln5_read")
+```
+
+Now read in the expression data.
+
+```{r read_expression}
+expr_data <- dataTable(getGEO(filename = file.path(data_dir, "expression_data", "GSM307014.txt")))@table
+rownames(expr_data) <- as.character(expr_data$ID_REF)
+expr_data$ID_REF <- rownames(expr_data)
+```
+
+Now, we need to translate the Affymetrix ID's to the Ensembl ID's that define the transcription start sites.
+
+```{r translate_affy}
+affy_2_ensembl <- select(hgu133plus2.db, keys = rownames(expr_data), columns = "ENSEMBLTRANS")
+expr_data$ENSEMBL <- ""
+expr_data <- expr_data[affy_2_ensembl[,1],]
+expr_data$ENSEMBL <- affy_2_ensembl[,2]
+```
+
+Because we have many cases where there are multiple transcripts per Affy ID, 
+Hmmm, have an issue with duplicates. How do we deal with that? Do we average, take the median, take the largest, etc?
