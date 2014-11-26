@@ -45,14 +45,14 @@ rep1 <- read.table(methyl_files[1], header = FALSE, sep = "\t", stringsAsFactors
 names(rep1) <- methyl_names
 methyl_rep1 <- GRanges(seqnames = rep1$chrom,
                        strand = rep1$strand,
-                      ranges = IRanges(start = rep1$start, end = rep1$end),
+                      ranges = IRanges(start = rep1$start, width = 1),
                       mcols = DataFrame(rep1[, c("readCount", "percentMeth")]))
 
 rep2 <- read.table(methyl_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
 names(rep2) <- methyl_names
 methyl_rep2 <- GRanges(seqnames = rep2$chrom,
                        strand = rep2$strand,
-                      ranges = IRanges(start = rep2$start, end = rep2$end),
+                      ranges = IRanges(start = rep2$start, width = 1),
                       mcols = DataFrame(rep2[, c("readCount", "percentMeth")]))
 
 mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
