@@ -34,31 +34,37 @@ tss_windows <- binned_function(tss_windows, ln4_cov, "sum", "ln4_read")
 tss_windows <- binned_function(tss_windows, ln5_cov, "sum", "ln5_read")
 ```
 
+Here we read in the methylation data and generate a **true** value for the amount of methylation covering a read, by multiplying the `readCount` by the `percentMeth`, we should generate the **methylation** reads only, which is what we are interested in.
 
 ```{r read_ctcf}
-ctcf_names <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "peak")
-ctcf_path <- file.path(data_dir, "ctcf_peaks")
-ctcf_files <- file.path(ctcf_path, dir(ctcf_path, pattern = "narrowPeak"))
+methyl_names <- c("bin", "chrom", "start", "end", "name", "score", "strand", "thickStart", "thickEnd", "itemRGB", "readCount", "percentMeth")
+methyl_path <- file.path(data_dir, "methylation_data")
+methyl_files <- file.path(methyl_path, dir(methyl_path, pattern = "mcf7_methyl"))
 
-rep1 <- read.table(ctcf_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep1) <- ctcf_names
-ctcf_rep1 <- GRanges(seqnames = rep1$chrom,
+rep1 <- read.table(methyl_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+names(rep1) <- methyl_names
+methyl_rep1 <- GRanges(seqnames = rep1$chrom,
+                       strand = rep1$strand,
                       ranges = IRanges(start = rep1$start, end = rep1$end),
-                      mcols = DataFrame(rep1[, c("signal", "pvalue")]))
+                      mcols = DataFrame(rep1[, c("readCount", "percentMeth")]))
 
-rep2 <- read.table(ctcf_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep2) <- ctcf_names
-ctcf_rep2 <- GRanges(seqnames = rep2$chrom,
+rep2 <- read.table(methyl_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+names(rep2) <- methyl_names
+methyl_rep2 <- GRanges(seqnames = rep2$chrom,
+                       strand = rep2$strand,
                       ranges = IRanges(start = rep2$start, end = rep2$end),
-                      mcols = DataFrame(rep2[, c("signal", "pvalue")]))
+                      mcols = DataFrame(rep2[, c("readCount", "percentMeth")]))
 
-ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
-ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
-tss_windows <- binned_function(tss_windows, ctcf_r1_cov, "mean_nozero", "ctcf_r1")
-tss_windows <- binned_function(tss_windows, ctcf_r2_cov, "mean_nozero", "ctcf_r2")
+mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
+mcols(methyl_rep2)$methyl_read <- mcols(methyl_rep2)$mcols.readCount * mcols(methyl_rep2)$mcols.percentMeth / 100
+
+methyl_r1_cov <- coverage(methyl_rep1, weight = "methyl_read")
+methyl_r2_cov <- coverage(methyl_rep2, weight = "methyl_read")
+tss_windows <- binned_function(tss_windows, methyl_r1_cov, "sum", "methyl_r1")
+tss_windows <- binned_function(tss_windows, methyl_r2_cov, "sum", "methyl_r2")
 ```
 
-Now with the Parp1 reads and CTCF ChIP-Seq data, we can start doing some correlations.
+Now with the Parp1 reads and methylation reads, we can start doing some correlations.
 
 
 ```{r set_non_zero}
@@ -67,8 +73,8 @@ non_zero <- "both"
 
 
 ```{r graphit}
-r1_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("ctcf_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(r1_v_ln4, aes(x = ctcf_r1, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+r1_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
+ggplot(r1_v_ln4, aes(x = methyl_r1, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(r1_v_ln4[,1]+1), log10(r1_v_ln4[,2]+1))
 
 r2_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("ctcf_r2", "ln4_read"), non_zero = non_zero, n_points = 10000)
