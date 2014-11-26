@@ -77,16 +77,16 @@ r1_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r1", "ln4_read"), n
 ggplot(r1_v_ln4, aes(x = methyl_r1, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(r1_v_ln4[,1]+1), log10(r1_v_ln4[,2]+1))
 
-r2_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("ctcf_r2", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(r2_v_ln4, aes(x = ctcf_r2, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+r2_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r2", "ln4_read"), non_zero = non_zero, n_points = 10000)
+ggplot(r2_v_ln4, aes(x = methyl_r2, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(r2_v_ln4[,1]+1), log10(r2_v_ln4[,2]+1))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(c("ctcf_r1", "ctcf_r2"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
-all_comb <- rbind(all_comb, c("ctcf_r1", "ctcf_r2"))
+all_comb <- expand.grid(c("methyl_r1", "methyl_r2"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
+all_comb <- rbind(all_comb, c("methyl_r1", "methyl_r2"))
 all_comb <- rbind(all_comb, c("ln4_read", "ln5_read"))
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
@@ -116,14 +116,14 @@ genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in
 
 genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "ln4_read")
 genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "ln5_read")
-genome_tiles <- binned_function(genome_tiles, ctcf_r1_cov, "mean_nozero", "ctcf_r1")
-genome_tiles <- binned_function(genome_tiles, ctcf_r2_cov, "mean_nozero", "ctcf_r2")
+genome_tiles <- binned_function(genome_tiles, methyl_r1_cov, "sum", "methyl_r1")
+genome_tiles <- binned_function(genome_tiles, methyl_r2_cov, "sum", "methyl_r2")
 ```
 
 
 ```{r genome_graph_test}
-genome_r1_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("ctcf_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(genome_r1_v_ln4, aes(x = ctcf_r1, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
+genome_r1_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("methyl_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
+ggplot(genome_r1_v_ln4, aes(x = methyl_r1, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
 cor(log(genome_r1_v_ln4[,1]+1), log(genome_r1_v_ln4[,2]+1))
 ```
 
