@@ -34,7 +34,7 @@ binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
   stopifnot(is(bins, "GRanges"))
   stopifnot(is(numvar, "RleList"))
 
-  bin_names <- seqlevels(bins)
+  bin_names <- levels(factor(as.character(seqnames(bins))))
   numvar_names <- names(numvar)
 
   calc_names <- intersect(bin_names, numvar_names)
