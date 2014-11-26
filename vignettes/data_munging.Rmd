@@ -236,5 +236,5 @@ In addition to the histone marks analysis that pulled histone peaks directly fro
 
 * Parp1 correlation with CTCF ChIP-Seq (http://genome.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeUwTfbs, select peaks from MCF-7 and CTCF)
 * Parp1 correlation with expression (http://biogps.org/dataset/844/expression-data-from-breast-cancer-cell-lines-mcf-7-and-mda-mb-231/)
-* Parp1 correlation with methylation either from UCSC ENCODE (rep1: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeHaibMethylRrbs/wgEncodeHaibMethylRrbsMcf7DukeSitesRep1.bed.gz,
+* Parp1 correlation with methylation either from UCSC ENCODE (rep1: http://genome.ucsc.edu/cgi-bin/hgTables?hgsid=396587911_8YHquTEUSQjmIfAHtJJT7vWY7N8U&clade=mammal&org=Human&db=hg19&hgta_group=allTracks&hgta_track=wgEncodeHaibMethylRrbs&hgta_table=wgEncodeHaibMethylRrbsMcf7DukeSitesRep2&hgta_regionType=genome&position=chr3%3A44561650-45561649&hgta_outputType=primaryTable&hgta_outFileName=mcf7_methyl_r1,
 rep2: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeHaibMethylRrbs/wgEncodeHaibMethylRrbsMcf7DukeSitesRep2.bed.gz) or mdanb231_mr1 and mr10 data that already exists, but still need to find a source.
