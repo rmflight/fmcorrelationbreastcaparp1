@@ -229,3 +229,12 @@ mcols(tss_windows) <- overlap_values
 save(tss_windows, file = file.path(use_dir, "tss_parp1.RData"))
 ```
 
+
+## Other Analyses
+
+In addition to the histone marks analysis that pulled histone peaks directly from the database, we also need to do
+
+* Parp1 correlation with CTCF ChIP-Seq (http://genome.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeUwTfbs, select peaks from MCF-7 and CTCF)
+* Parp1 correlation with expression (http://biogps.org/dataset/844/expression-data-from-breast-cancer-cell-lines-mcf-7-and-mda-mb-231/)
+* Parp1 correlation with methylation either from UCSC ENCODE (rep1: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeHaibMethylRrbs/wgEncodeHaibMethylRrbsMcf7DukeSitesRep1.bed.gz,
+rep2: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeHaibMethylRrbs/wgEncodeHaibMethylRrbsMcf7DukeSitesRep2.bed.gz) or mdanb231_mr1 and mr10 data that already exists, but still need to find a source.
