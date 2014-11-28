@@ -1,0 +1,124 @@
+# Calculating the lower limit of the error of the reads
+
+A bunch of the regions have low counts, ~ 10, where it appears that the correlative structure breaks down. This can be seen in the correlation plots. Ideally, we might be able to simply provide a minimum value to the function that calculates the correlations, but we first need to be able to justify the minimum value that we are using. In order to do that, we need to be able to show where the correlation breaks down. Thankfully, for a bunch of our datasets, we have replicates we can play with.
+
+```{r setup}
+data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+library(GenomicRanges)
+library(magrittr)
+options(mc.cores = 10)
+library(parallel)
+library(ggplot2)
+library(parp1)
+library(BiocParallel)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(pracma)
+```
+
+```{r load_tss_parp1}
+load(file.path(data_dir, "tss_windows.RData"))
+load(file.path(data_dir, "ln4_reads_unique.RData"))
+load(file.path(data_dir, "ln5_reads_unique.RData"))
+
+genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
+
+```
+
+In this case we are actually going to calculate the Parp1 sums across the genome.
+
+```{r parp1_abundance}
+ln4_cov <- coverage(ln4_unique, weight = "n_count")
+ln5_cov <- coverage(ln5_unique, weight = "n_count")
+genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_r1")
+genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_r2")
+```
+
+```{r sample}
+non_zero <- "both"
+r1_v_r2 <- subsample_nonzeros(mcols(genome_tiles), c("parp1_r1", "parp1_r2"), non_zero = non_zero, n_points = 10000)
+
+ggplot(r1_v_r2, aes(x = parp1_r1, y = parp1_r2)) + geom_point() + scale_y_log10() + scale_x_log10()
+```
+
+Now lets do the orthogonal regression.
+
+```{r odr}
+both_non <- find_non_zeros(mcols(genome_tiles), c("parp1_r1", "parp1_r2"), log_transform = TRUE, non_zero = non_zero)
+parp1_data <- mcols(genome_tiles[both_non])
+parp1_data[,1] <- log10(parp1_data[,1] + 1)
+parp1_data[,2] <- log10(parp1_data[,2] + 1)
+parp1_odr <- odregress(parp1_data[,1], parp1_data[,2])
+```
+
+Plot everything!
+
+```{r plot_everything}
+plot(parp1_data[,1], parp1_data[,2])
+lines(parp1_data[,1], parp1_odr$fitted, col = "red")
+```
+
+Hmm, is there anything in the base histogram?
+
+```{r everything_histogram}
+hist(parp1_odr$err, 200)
+```
+
+Doesn't look like it. What if we do the low ones?
+
+```{r low_hist}
+low_val <- 1.5
+which_low <- (parp1_data[,1] <= low_val) & (parp1_data[,2] <= low_val)
+low_res <- parp1_odr$err[which_low]
+low_val <- parp1_data[(parp1_data[,1] <= 1.5) & (parp1_data[,2] <= 1.5),]
+```
+
+
+Maybe this will work better for one of the other datasets?
+
+## Methylation
+
+```{r load_methyl}
+methyl_names <- c("bin", "chrom", "start", "end", "name", "score", "strand", "thickStart", "thickEnd", "itemRGB", "readCount", "percentMeth")
+methyl_path <- file.path(data_dir, "methylation_data")
+methyl_files <- file.path(methyl_path, dir(methyl_path, pattern = "mcf7_methyl"))
+
+rep1 <- read.table(methyl_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+names(rep1) <- methyl_names
+methyl_rep1 <- GRanges(seqnames = rep1$chrom,
+                       strand = rep1$strand,
+                      ranges = IRanges(start = rep1$start, width = 1),
+                      mcols = DataFrame(rep1[, c("readCount", "percentMeth")]))
+
+rep2 <- read.table(methyl_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+names(rep2) <- methyl_names
+methyl_rep2 <- GRanges(seqnames = rep2$chrom,
+                       strand = rep2$strand,
+                      ranges = IRanges(start = rep2$start, width = 1),
+                      mcols = DataFrame(rep2[, c("readCount", "percentMeth")]))
+
+mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
+mcols(methyl_rep2)$methyl_read <- mcols(methyl_rep2)$mcols.readCount * mcols(methyl_rep2)$mcols.percentMeth / 100
+
+methyl_r1_cov <- coverage(methyl_rep1, weight = "methyl_read")
+methyl_r2_cov <- coverage(methyl_rep2, weight = "methyl_read")
+genome_tiles <- binned_function(genome_tiles, methyl_r1_cov, "sum", "methyl_r1")
+genome_tiles <- binned_function(genome_tiles, methyl_r2_cov, "sum", "methyl_r2")
+```
+
+Now plot the methyl ones.
+
+```{r methyl_transform}
+methyl_nonzero <- find_non_zeros(mcols(genome_tiles), c("methyl_r1", "methyl_r2"), log_transform = TRUE, non_zero = non_zero)
+
+methyl_data <- mcols(genome_tiles[methyl_nonzero])[,c("methyl_r1", "methyl_r2")]
+methyl_data[,1] <- log10(methyl_data[,1] + 1)
+methyl_data[,2] <- log10(methyl_data[,2] + 1)
+```
+
+```{r methyl_plot}
+plot(methyl_data[,1], methyl_data[,2])
+```
+
+What does the orthogonal regression look like?
+
+
