@@ -4,6 +4,7 @@ A bunch of the regions have low counts, ~ 10, where it appears that the correlat
 
 ```{r setup}
 data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+graph_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1/graphs"
 library(GenomicRanges)
 library(magrittr)
 options(mc.cores = 10)
@@ -55,6 +56,7 @@ Plot everything!
 ```{r plot_everything}
 plot(parp1_data[,1], parp1_data[,2])
 lines(parp1_data[,1], parp1_odr$fitted, col = "red")
+png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2]); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
 ```
 
 Hmm, is there anything in the base histogram?
@@ -71,6 +73,8 @@ which_low <- (parp1_data[,1] <= low_val) & (parp1_data[,2] <= low_val)
 low_res <- parp1_odr$err[which_low]
 low_val <- parp1_data[(parp1_data[,1] <= 1.5) & (parp1_data[,2] <= 1.5),]
 ```
+
+
 
 
 Maybe this will work better for one of the other datasets?
@@ -144,5 +148,5 @@ methyl_densities <- lapply(seq(1, 10), function(x){
 			   }
 })
 methyl_densities <- do.call(rbind, methyl_densities)
-methyl_densities$decile <- as.factor(methyl_densities$decile, levels = seq(10, 1), ordered = TRUE)
+methyl_densities$decile <- factor(methyl_densities$decile, levels = seq(10, 1), ordered = TRUE)
 ```
