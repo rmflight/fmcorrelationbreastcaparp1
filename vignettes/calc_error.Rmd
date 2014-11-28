@@ -130,11 +130,11 @@ This looks pretty good. Now, for each part of the range of values, lets get out 
 
 ```{r density_decile}
 methyl_range <- range(sapply(methyl_data, range))
-methyl_decile <- seq(0.2, 6.2, length.out = 10)
+methyl_decile <- quantile(methyl_data[,1], seq(0, 1, 0.1)) 
 methyl_split <- cut(methyl_data[,1], methyl_decile, right = FALSE)
 methyl_resid_split <- split(methyl_ord$err, methyl_split)
 
-methyl_densities <- lapply(seq(1, 6), function(x){
+methyl_densities <- lapply(seq(1, 10), function(x){
 			   tmp_res <- methyl_resid_split[[x]]
 			   if (length(tmp_res) > 1){
 				   tmp_dens <- stats::density(methyl_resid_split[[x]])
@@ -144,5 +144,5 @@ methyl_densities <- lapply(seq(1, 6), function(x){
 			   }
 })
 methyl_densities <- do.call(rbind, methyl_densities)
-methyl_densities$decile <- as.factor(methyl_densities$decile)
+methyl_densities$decile <- as.factor(methyl_densities$decile, levels = seq(10, 1), ordered = TRUE)
 ```
