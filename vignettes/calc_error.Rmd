@@ -54,9 +54,9 @@ parp1_odr <- odregress(parp1_data[,1], parp1_data[,2])
 Plot everything!
 
 ```{r plot_everything}
-plot(parp1_data[,1], parp1_data[,2])
+plot(parp1_data[,1], parp1_data[,2], asp = 1)
 lines(parp1_data[,1], parp1_odr$fitted, col = "red")
-png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2]); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
+png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2], asp = 1); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
 ```
 
 Hmm, is there anything in the base histogram?
@@ -74,8 +74,31 @@ low_res <- parp1_odr$err[which_low]
 low_val <- parp1_data[(parp1_data[,1] <= 1.5) & (parp1_data[,2] <= 1.5),]
 ```
 
+```{r parp1_deciles}
+parp1_range <- range(sapply(parp1_data, range))
+parp1_decile <- quantile(parp1_data[,1], seq(0, 1, 0.1)) 
+parp1_split <- cut(parp1_data[,1], parp1_decile, right = FALSE)
+parp1_resid_split <- split(parp1_odr$err, parp1_split)
 
+parp1_densities <- lapply(seq(1, 10), function(x){
+			   tmp_res <- parp1_resid_split[[x]]
+			   if (length(tmp_res) > 1){
+				   tmp_dens <- stats::density(parp1_resid_split[[x]])
+			   	   data.frame(x = tmp_dens$x, y = tmp_dens$y, decile = x)
+			   } else {
+				   data.frame(x = 0, y = 1, decile = x)
+			   }
+})
+parp1_densities <- do.call(rbind, parp1_densities)
+parp1_densities$decile <- factor(parp1_densities$decile, levels = seq(10, 1), ordered = TRUE)
+```
 
+```{r graph_density_parp1}
+ggplot(parp1_densities, aes(x = x, y = y, color = decile) + geom_line(size = 3)
+png(file = file.path(graph_dir, "parp1_decile_density.png")); ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
+```
+
+There is definitely a difference in the lineshapes, but I don't know if it is actually diagnostic.
 
 Maybe this will work better for one of the other datasets?
 
@@ -120,7 +143,8 @@ methyl_data[,2] <- log10(methyl_data[,2] + 1)
 ```
 
 ```{r methyl_plot}
-plot(methyl_data[,1], methyl_data[,2])
+plot(methyl_data[,1], methyl_data[,2], asp = 1)
+png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl
 ```
 
 What does the orthogonal regression look like?
@@ -128,6 +152,10 @@ What does the orthogonal regression look like?
 ```{r methyl_ord}
 methyl_ord <- odregress(methyl_data[,1], methyl_data[,2])
 lines(methyl_data[,1], methyl_ord$fitted, col = "red")
+```
+
+```{r save_methyl_plot}
+png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl_data[,1], methyl_data[,2], asp = 1); lines(methyl_data[,1], methyl_ord$fitted, col = "red"); dev.off();
 ```
 
 This looks pretty good. Now, for each part of the range of values, lets get out the points and generate a density estimate for those points residuals. What I am hoping to see is a larger and larger SD as we move across the decile.
@@ -149,4 +177,11 @@ methyl_densities <- lapply(seq(1, 10), function(x){
 })
 methyl_densities <- do.call(rbind, methyl_densities)
 methyl_densities$decile <- factor(methyl_densities$decile, levels = seq(10, 1), ordered = TRUE)
+```
+
+Now plot the densities.
+
+```{r plot_methyl_densities}
+ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3)
+png(file.path(graph_dir, "methyl_decile_densities.png")); ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
 ```
