@@ -319,3 +319,26 @@ bootstrap_correlation <- function(data, data_columns, log_transform = TRUE, non_
   ci_range <- c(c_value - ci_val, c_value + ci_val)
   return(c(cor = c_value, ci = ci_range))
 }
+
+#' boostrap orthogonal regression
+#' 
+#' for a set of data, do a bootstrapped orthogonal regression
+#'
+#' @param x_data the X-data
+#' @param y_data the Y-data
+#' @param n_boot how many bootstrap samples to do
+#' @export 
+#' @return vector of the coefficients
+#' @importFrom pracma odregress
+bootstrap_odregress <- function(x_data, y_data, n_boot = 500){
+  n_point <- length(x_data)
+  
+  boot_data <- lapply(seq(1, n_boot), function(x){
+		      use_sample <- sample(n_point, n_point, replace = TRUE)
+		      odres <- odregress(x_data[use_sample], y_data[use_sample])
+		      odres$coeff
+  })
+  boot_data <- do.call(rbind, boot_data)
+  return(boot_data)
+}
+
