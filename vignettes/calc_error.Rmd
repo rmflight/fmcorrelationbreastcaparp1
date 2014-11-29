@@ -59,6 +59,17 @@ lines(parp1_data[,1], parp1_odr$fitted, col = "red")
 png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2], asp = 1); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
 ```
 
+```{r another_regression}
+library(calcFormulas)
+parp1_odr2 <- orthogonalRegression(parp1_data[,1], parp1_data[,2])
+lines(parp1_odr2$xFit, parp1_odr2$yFit)
+parp1_odr2$slope
+parp1_odr2_resid <- sqrt((parp1_data[,1] - parp1_odr2$xFit)^2 + (parp1_data[,2] - parp1_odr2$yFit)^2)
+sum(parp1_odr$err - parp1_odr2_resid)
+```
+OK, so it appears the residuals from the original are correct, and we don't need to redo this all with another method. 
+
+
 Hmm, is there anything in the base histogram?
 
 ```{r everything_histogram}
@@ -94,7 +105,7 @@ parp1_densities$decile <- factor(parp1_densities$decile, levels = seq(10, 1), or
 ```
 
 ```{r graph_density_parp1}
-ggplot(parp1_densities, aes(x = x, y = y, color = decile) + geom_line(size = 3)
+ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3)
 png(file = file.path(graph_dir, "parp1_decile_density.png")); ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
 ```
 
@@ -144,7 +155,6 @@ methyl_data[,2] <- log10(methyl_data[,2] + 1)
 
 ```{r methyl_plot}
 plot(methyl_data[,1], methyl_data[,2], asp = 1)
-png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl
 ```
 
 What does the orthogonal regression look like?
