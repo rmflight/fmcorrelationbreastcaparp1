@@ -16,6 +16,13 @@ library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
 ```
 
+Because we have a lot of points, and `RStudio` takes time to get the plots, we will open an `X11` plot window to send the plots to.
+
+```{r plotX11}
+X11()
+```
+
+
 ```{r load_tss_parp1}
 load(file.path(data_dir, "tss_windows.RData"))
 load(file.path(data_dir, "ln4_reads_unique.RData"))
@@ -86,9 +93,13 @@ low_val <- parp1_data[(parp1_data[,1] <= 1.5) & (parp1_data[,2] <= 1.5),]
 ```
 
 ```{r parp1_deciles}
-parp1_range <- range(sapply(parp1_data, range))
-parp1_decile <- quantile(parp1_data[,1], seq(0, 1, 0.1)) 
-parp1_split <- cut(parp1_data[,1], parp1_decile, right = FALSE)
+parp1_mean <- rowMeans(as.matrix(parp1_data))
+parp1_range <- range(parp1_mean)
+parp1_decile <- quantile(parp1_mean, seq(0, 1, 0.1))
+parp1_split <- cut(parp1_mean, parp1_decile, right = FALSE)
+
+parp1_data_split <- split(parp1_data, parp1_split)
+
 parp1_resid_split <- split(parp1_odr$err, parp1_split)
 
 parp1_densities <- lapply(seq(1, 10), function(x){
@@ -105,7 +116,7 @@ parp1_densities$decile <- factor(parp1_densities$decile, levels = seq(10, 1), or
 ```
 
 ```{r graph_density_parp1}
-ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3)
+ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 2)
 png(file = file.path(graph_dir, "parp1_decile_density.png")); ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
 ```
 
@@ -194,4 +205,23 @@ Now plot the densities.
 ```{r plot_methyl_densities}
 ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3)
 png(file.path(graph_dir, "methyl_decile_densities.png")); ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
+```
+
+Note that this is not quite right. What we actually need to do is cut the data in both the X and Y, and get out these little chunks that fit that range in both directions. Need a better way, cause what I did above is not correct. Need to fix it. Hunter has suggested using the mean value across replicates as a way to delineate the points that should go together.
+
+Did we do the residuals correctly? The actual numbers are correct, but the residuals within a given range?
+
+Alternatively, what is the variance in Y values for binned values of X, and what is the variance in X values for binned values of Y? At some point in the X and Y, there should be stabilization of the values, i.e. the variance will get smaller or stabilize. I'm not sure anymore.
+
+## Bootstrap the Orthogonal Regression by Decile, and adding Deciles
+
+What if instead, we did a bootstrap of the orthogonal regression in each decile? What would the variance of the slope look like in each of the deciles?
+
+```{r boot_odregress}
+parp1_data_split_index <- split(seq(1, nrow(parp1_data)), parp1_split) 
+
+parp1_boot_odregress <- mclapply(parp1_data_split_index, function(in_split){
+				 bootstrap_odregress(parp1_data[in_split,1], parp1_data[in_split,2])
+})
+
 ```
