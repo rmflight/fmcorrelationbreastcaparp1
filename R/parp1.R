@@ -357,3 +357,31 @@ generate_quantile_indices <- function(x, n_quantile = 101){
   x_index <- split(seq(1, length(x)), x_split)
   return(x_index)
 }
+
+#' cumulative indices
+#' 
+#' Given a list of indices assumed to in ranked order, generate a set of cumulative
+#' indices wherein the indices are essentially collapsed together.
+#' 
+#' @param indices_list the list of indices we want to work with
+#' @param direction which way to put the indices together (low_to_high or high_to_low)
+#' @examples
+#' indices_list <- list("1" = c(1,2,3), "2" = c(4,5,6), "3" = c(7,8,9))
+#' cum_indices(indices_list, "low_to_high")
+#' cum_indices(indices_list, "high_to_low")
+#' @export
+#' @return new indices_list with cumulative indices
+cum_indices <- function(indices_list, direction = "low_to_high"){
+  n_indices <- length(indices_list)
+  
+  seq_list <- switch(direction,
+                     low_to_high = seq(1, n_indices, 1),
+                     high_to_low = seq(n_indices, 1, -1))
+  
+  new_indices <- lapply(seq(1, n_indices), function(index){
+    grab_index <- seq_list[1:index]
+    unlist(indices_list[grab_index], use.names = FALSE)
+  })
+  names(new_indices) <- names(indices_list)[seq_list]
+  return(new_indices)
+}
