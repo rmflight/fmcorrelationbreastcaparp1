@@ -63,6 +63,9 @@ Plot everything!
 ```{r plot_everything}
 plot(parp1_data[,1], parp1_data[,2], asp = 1)
 lines(parp1_data[,1], parp1_odr$fitted, col = "red")
+```
+
+```{r save_parp1_everything, eval=FALSE}
 png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2], asp = 1); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
 ```
 
@@ -98,7 +101,7 @@ parp1_range <- range(parp1_mean)
 parp1_decile <- quantile(parp1_mean, seq(0, 1, 0.1))
 parp1_split <- cut(parp1_mean, parp1_decile, right = FALSE)
 
-parp1_data_split <- split(parp1_data, parp1_split)
+parp1_data_split <- split(parp1_data, parp1_split) # allows us to easily plot to double check data
 
 parp1_resid_split <- split(parp1_odr$err, parp1_split)
 
@@ -117,6 +120,9 @@ parp1_densities$decile <- factor(parp1_densities$decile, levels = seq(10, 1), or
 
 ```{r graph_density_parp1}
 ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 2)
+```
+
+```{r parp1_gd_save, eval=FALSE}
 png(file = file.path(graph_dir, "parp1_decile_density.png")); ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
 ```
 
@@ -175,16 +181,18 @@ methyl_ord <- odregress(methyl_data[,1], methyl_data[,2])
 lines(methyl_data[,1], methyl_ord$fitted, col = "red")
 ```
 
-```{r save_methyl_plot}
+```{r save_methyl_plot, eval = FALSE}
 png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl_data[,1], methyl_data[,2], asp = 1); lines(methyl_data[,1], methyl_ord$fitted, col = "red"); dev.off();
 ```
 
 This looks pretty good. Now, for each part of the range of values, lets get out the points and generate a density estimate for those points residuals. What I am hoping to see is a larger and larger SD as we move across the decile.
 
 ```{r density_decile}
-methyl_range <- range(sapply(methyl_data, range))
-methyl_decile <- quantile(methyl_data[,1], seq(0, 1, 0.1)) 
-methyl_split <- cut(methyl_data[,1], methyl_decile, right = FALSE)
+methyl_mean <- rowMeans(as.matrix(methyl_data))
+methyl_decile <- quantile(methyl_mean, seq(0, 1, 0.1)) 
+methyl_split <- cut(methyl_mean, methyl_decile, right = FALSE)
+
+methyl_data_split <- split(methyl_data, methyl_split)
 methyl_resid_split <- split(methyl_ord$err, methyl_split)
 
 methyl_densities <- lapply(seq(1, 10), function(x){
