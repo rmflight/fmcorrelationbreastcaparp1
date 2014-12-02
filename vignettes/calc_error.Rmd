@@ -211,25 +211,38 @@ methyl_densities$decile <- factor(methyl_densities$decile, levels = seq(10, 1), 
 Now plot the densities.
 
 ```{r plot_methyl_densities}
-ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3)
+ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 2)
+```
+
+```{r methyl_gd_save, eval=FALSE}
 png(file.path(graph_dir, "methyl_decile_densities.png")); ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
 ```
 
-Note that this is not quite right. What we actually need to do is cut the data in both the X and Y, and get out these little chunks that fit that range in both directions. Need a better way, cause what I did above is not correct. Need to fix it. Hunter has suggested using the mean value across replicates as a way to delineate the points that should go together.
 
-Did we do the residuals correctly? The actual numbers are correct, but the residuals within a given range?
+## Bootstrap the Orthogonal Regression as we add points from either low or high end
 
-Alternatively, what is the variance in Y values for binned values of X, and what is the variance in X values for binned values of Y? At some point in the X and Y, there should be stabilization of the values, i.e. the variance will get smaller or stabilize. I'm not sure anymore.
+What if instead, we did a bootstrap of the orthogonal regression in each range? What would the variance of the slope look like in each of the deciles?
 
-## Bootstrap the Orthogonal Regression by Decile, and adding Deciles
+```{r parp1_odregress}
+parp1_split_indices <- generate_quantile_indices(parp1_mean, n_quantile = 101)
 
-What if instead, we did a bootstrap of the orthogonal regression in each decile? What would the variance of the slope look like in each of the deciles?
+parp1_low2hi_indices <- cum_indices(parp1_split_indices, "low_to_high")
+parp1_hi2low_indices <- cum_indices(parp1_split_indices, "high_to_low")
 
-```{r boot_odregress}
-parp1_data_split_index <- split(seq(1, nrow(parp1_data)), parp1_split) 
-
-parp1_boot_odregress <- mclapply(parp1_data_split_index, function(in_split){
-				 bootstrap_odregress(parp1_data[in_split,1], parp1_data[in_split,2])
+parp1_low2hi_odregress <- lapply(parp1_low2hi_indices, function(in_split){
+				 tmp_regress <- odregress(parp1_data[in_split,1], parp1_data[in_split,2])
+         tmp_regress$coeff
 })
+parp1_low2hi_odregress <- do.call(rbind, parp1_low2hi_odregress)
 
+parp1_hi2low_odregress <- lapply(parp1_hi2low_indices, function(in_split){
+  tmp_regress <- odregress(parp1_data[in_split, 1], parp1_data[in_split, 2])
+  tmp_regress$coeff
+})
+parp1_hi2low_odregress <- do.call(rbind, parp1_hi2low_odregress)
+```
+
+```{r plot_odregress}
+plot(parp1_low2hi_odregress[,1])
+plot(parp1_hi2low_odregress[,1])
 ```
