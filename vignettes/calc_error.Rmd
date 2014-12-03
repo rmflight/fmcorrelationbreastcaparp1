@@ -267,3 +267,20 @@ parp1_hi2low_cor <- do.call(c, parp1_hi2low_cor)
 
 ### Methylation
 
+```{r methyl_centiles}
+methyl_split_indices <- generate_quantile_indices(methyl_mean, n_quantile = 101)
+
+methyl_low2hi_indices <- cum_indices(methyl_split_indices, "low_to_high")
+methyl_hi2low_indices <- cum_indices(methyl_split_indices, "high_to_low")
+
+methyl_low2hi_cor <- lapply(methyl_low2hi_indices, function(in_split){
+  cor(methyl_data[in_split, 1], methyl_data[in_split, 2])
+})
+methyl_low2hi_cor <- do.call(c, methyl_low2hi_cor)
+
+methyl_hi2low_cor <- lapply(methyl_hi2low_indices, function(in_split){
+  cor(methyl_data[in_split, 1], methyl_data[in_split, 2])
+})
+methyl_hi2low_cor <- do.call(c, methyl_hi2low_cor)
+```
+
