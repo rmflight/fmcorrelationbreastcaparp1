@@ -352,7 +352,7 @@ bootstrap_odregress <- function(x_data, y_data, n_boot = 500){
 #' @importFrom stats quantile
 #' @return list with indices for each quantile
 generate_quantile_indices <- function(x, n_quantile = 101){
-  gen_quantile <- quantile(x, seq(0, 1, length.out = n_quantile))
+  gen_quantile <- unique(quantile(x, seq(0, 1, length.out = n_quantile)))
   x_split <- cut(x, gen_quantile, right = FALSE)
   x_index <- split(seq(1, length(x)), x_split)
   return(x_index)
