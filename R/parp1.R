@@ -392,14 +392,15 @@ cum_indices <- function(indices_list, direction = "low_to_high"){
 #' between the columns of the data.frame using the indices, iterating over the list
 #' of indices.
 #' 
-#' @param data the data.frame of data (should be two columns only)
+#' @param x the data.frame of data (should be two columns only)
 #' @param indices_list the list of indices to be iterated over
+#' @param similarity the function used to calculate the similarity
 #' @export
 #' @return numerical vector of correlations
 #' @importFrom stats cor
-list_correlation <- function(data, indices_list){
+list_correlation <- function(x, indices_list, similarity = stats::cor){
   out_cor <- lapply(indices_list, function(in_ind){
-    cor(data[in_ind, 1], data[in_ind, 2])
+    similarity(x[in_ind, 1], x[in_ind, 2])
   })
   out_cor <- do.call(c, out_cor)
   return(out_cor)
