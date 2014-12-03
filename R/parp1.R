@@ -454,6 +454,7 @@ cut_2_value <- function(cuts, type = "left"){
 #' @return data.frame with the values, the corresponding cut value, and which cumulative indices generated it
 #' 
 #' @importFrom stats cor
+#' @importMethodsFrom IRanges as.matrix
 run_cum_quantiles <- function(x, n_quantile = 101, similarity = stats::cor, cut_loc = "left"){
   x_mean <- rowMeans(as.matrix(x))
   
