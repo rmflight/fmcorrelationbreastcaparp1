@@ -404,3 +404,72 @@ list_correlation <- function(data, indices_list){
   out_cor <- do.call(c, out_cor)
   return(out_cor)
 }
+
+#' cut names 2 value
+#' 
+#' Given a set of \code{cuts} as character names of a vector, return either the \code{left},
+#' \code{right} or \code{mid} as a numerical value that can be used for plotting.
+#' 
+#' @param cuts the set of character \code{cuts} to process
+#' @param type which type of value to return
+#' 
+#' @examples
+#' 
+#' # set up some fake data
+#' cuts <- c("[0.301,0.4771)", "[0.4771,0.6276)")
+#' 
+#' cut_2_value(cuts, "left")
+#' cut_2_value(cuts, "right")
+#' cut_2_value(cuts, "mid")
+#' 
+#' @return numerical vector
+#' @export
+cut_2_value <- function(cuts, type = "left"){
+  return_function <- switch(type,
+                            left = function(x){as.numeric(x[1])},
+                            right = function(x){as.numeric(x[2])},
+                            mid = function(x){mean(as.numeric(x))})
+  
+  cut_sub <- gsub("\\[", "", cuts)
+  cut_sub <- gsub("\\)", "", cut_sub)
+  
+  cut_split <- strsplit(cut_sub, ",")
+  
+  out_val <- sapply(cut_split, return_function)
+  return(out_val)
+}
+
+#' run adding quantiles
+#' 
+#' Given a data set, generate the quantiles, the \code{cum_indices}, run the correlation,
+#' and return a data.frame for plotting and diagnostics.
+#' 
+#' @param x a two column data.frame
+#' @param n_quantile how many quantiles
+#' @param similarity_function what similarity function to use
+#' @param cut_loc which way to generate cut values on the data ("left", "right", "mid")
+#' 
+#' @export
+#' @return data.frame with the values, the corresponding cut value, and which cumulative indices generated it
+#' 
+#' @importFrom stats cor
+run_cum_quantiles <- function(x, n_quantile = 101, similarity = stats::cor, cut_loc = "left"){
+  x_mean <- rowMeans(as.matrix(x))
+  
+  x_q <- generate_quantile_indices(x_mean, n_quantile)
+  x_low2hi <- cum_indices(x_q, "low_to_high")
+  x_hi2low <- cum_indices(x_q, "high_to_low")
+  
+  cor_low2hi <- list_correlation(x, x_low2hi, similarity)
+  cor_hi2low <- list_correlation(x, x_hi2low, similarity)
+  
+  cut_low2hi <- cut_2_value(names(cor_low2hi), type = cut_loc)
+  cut_hi2low <- cut_2_value(names(cor_hi2low), type = cut_loc)
+  
+  n_low2hi <- length(cor_low2hi)
+  n_hi2low <- length(cor_hi2low)
+  
+  data.frame(cut = c(cut_low2hi, cut_hi2low),
+             cor = c(cor_low2hi, cor_hi2low),
+             type = c(rep("low2hi", n_low2hi), rep("hi2low", n_hi2low)))
+}
