@@ -247,3 +247,23 @@ plot(parp1_low2hi_odregress[,1])
 plot(parp1_hi2low_odregress[,1])
 ```
 
+## Calculate Change in Correlation as we Add Centiles
+
+As much as I would prefer to be using the orthogonal regression method above, because we are measuring correlation in the other analyses, we should probably use change in correlation, as it will be easier to explain and defend in the manuscript.
+
+### Parp1
+
+```{r parp1_centile_correlation}
+parp1_low2hi_cor <- lapply(parp1_low2hi_indices, function(in_split){
+  			 cor(parp1_data[in_split,1], parp1_data[in_split,2])
+})
+parp1_low2hi_cor <- do.call(c, parp1_low2hi_cor)
+
+parp1_hi2low_cor <- lapply(parp1_hi2low_indices, function(in_split){
+  cor(parp1_data[in_split, 1], parp1_data[in_split, 2])
+})
+parp1_hi2low_cor <- do.call(c, parp1_hi2low_cor)
+```
+
+### Methylation
+
