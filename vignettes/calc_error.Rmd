@@ -283,12 +283,15 @@ names(rep1) <- ctcf_names
 ctcf_rep1 <- GRanges(seqnames = rep1$chrom,
                      ranges = IRanges(start = rep1$start, end = rep1$end),
                      mcols = DataFrame(rep1[, c("signal", "pValue")]))
+mcols(ctcf_rep1)$mcols.signal <- log10(mcols(ctcf_rep1)$mcols.signal + 1)
 
 rep2 <- read.table(ctcf_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
 names(rep2) <- ctcf_names
 ctcf_rep2 <- GRanges(seqnames = rep2$chrom,
                      ranges = IRanges(start = rep2$start, end = rep2$end),
                      mcols = DataFrame(rep2[, c("signal", "pValue")]))
+
+mcols(ctcf_rep2)$mcols.signal <- log10(mcols(ctcf_rep2)$mcols.signal + 1)
 
 ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
 ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
