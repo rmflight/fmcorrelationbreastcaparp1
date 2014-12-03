@@ -303,11 +303,11 @@ genome_tiles <- binned_function(genome_tiles, ctcf_r2_cov, "mean_nozero", "ctcf_
 Find the ones that are non-zero in the replicates
 
 ```{r ctcf_nozero}
-ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = TRUE, non_zero = non_zero)
+ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = FALSE, non_zero = non_zero)
 
 ctcf_data <- mcols(genome_tiles[ctcf_nonzero])[, c("ctcf_r1", "ctcf_r2")]
-ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
-ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
+#ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
+#ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
 ```
 
 Plot the CTCF data
