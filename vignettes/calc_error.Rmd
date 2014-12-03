@@ -283,7 +283,7 @@ names(rep1) <- ctcf_names
 ctcf_rep1 <- GRanges(seqnames = rep1$chrom,
                      ranges = IRanges(start = rep1$start, end = rep1$end),
                      mcols = DataFrame(rep1[, c("signal", "pValue")]))
-mcols(ctcf_rep1)$mcols.signal <- log10(mcols(ctcf_rep1)$mcols.signal + 1)
+#mcols(ctcf_rep1)$mcols.signal <- log10(mcols(ctcf_rep1)$mcols.signal + 1)
 
 rep2 <- read.table(ctcf_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
 names(rep2) <- ctcf_names
@@ -291,7 +291,7 @@ ctcf_rep2 <- GRanges(seqnames = rep2$chrom,
                      ranges = IRanges(start = rep2$start, end = rep2$end),
                      mcols = DataFrame(rep2[, c("signal", "pValue")]))
 
-mcols(ctcf_rep2)$mcols.signal <- log10(mcols(ctcf_rep2)$mcols.signal + 1)
+#mcols(ctcf_rep2)$mcols.signal <- log10(mcols(ctcf_rep2)$mcols.signal + 1)
 
 ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
 ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
@@ -303,17 +303,17 @@ genome_tiles <- binned_function(genome_tiles, ctcf_r2_cov, "mean_nozero", "ctcf_
 Find the ones that are non-zero in the replicates
 
 ```{r ctcf_nozero}
-ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = FALSE, non_zero = non_zero)
+ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = TRUE, non_zero = non_zero)
 
 ctcf_data <- mcols(genome_tiles[ctcf_nonzero])[, c("ctcf_r1", "ctcf_r2")]
-#ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
-#ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
+ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
+ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
 ```
 
 Plot the CTCF data
 
 ```{r ctcf_plot}
-plot(ctcf_data[,1], ctcf_data[,2])
+plot(ctcf_data[,1], ctcf_data[,2], asp = 1)
 ```
 
 Cool, looks good. Now the cumulative correlations and orthogonal regressions.
