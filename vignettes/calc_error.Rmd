@@ -254,21 +254,71 @@ As much as I would prefer to be using the orthogonal regression method above, be
 ### Parp1
 
 ```{r parp1_centile_correlation}
-parp1_low2hi_cor <- list_correlation(parp1_data, parp1_low2hi_indices)
+parp1_cor_quantiles <- run_cum_quantiles(parp1_data)
 
-parp1_hi2low_cor <- list_correlation(parp1_data, parp1_hi2low_indices)
+odregress_fun <- function(x, y){
+  tmp <- pracma::odregress(x, y)
+  tmp$coef[1]
+}
+
+parp1_odr_quantiles <- run_cum_quantiles(parp1_data, similarity = odregress_fun)
 ```
 
 ### Methylation
 
 ```{r methyl_centiles}
-methyl_split_indices <- generate_quantile_indices(methyl_mean, n_quantile = 101)
-
-methyl_low2hi_indices <- cum_indices(methyl_split_indices, "low_to_high")
-methyl_hi2low_indices <- cum_indices(methyl_split_indices, "high_to_low")
-
-methyl_low2hi_cor <- list_correlation(methyl_data, methyl_low2hi_indices)
-
-methyl_hi2low_cor <- list_correlation(methyl_data, methyl_hi2low_indices)
+methyl_cor_quantiles <- run_cum_quantiles(methyl_data)
+methyl_odr_quantiles <- run_cum_quantiles(methyl_data, similarity = odregress_fun)
 ```
 
+### CTCF
+
+```{r load_ctcf_data}
+ctcf_names <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pValue", "qValue")
+ctcf_path <- file.path(data_dir, "ctcf_peaks")
+ctcf_files <- file.path(ctcf_path, dir(ctcf_path, pattern = "narrowPeak.gz"))
+rep1 <- read.table(ctcf_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+
+names(rep1) <- ctcf_names
+ctcf_rep1 <- GRanges(seqnames = rep1$chrom,
+                     ranges = IRanges(start = rep1$start, end = rep1$end),
+                     mcols = DataFrame(rep1[, c("signal", "pValue")]))
+
+rep2 <- read.table(ctcf_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+names(rep2) <- ctcf_names
+ctcf_rep2 <- GRanges(seqnames = rep2$chrom,
+                     ranges = IRanges(start = rep2$start, end = rep2$end),
+                     mcols = DataFrame(rep2[, c("signal", "pValue")]))
+
+ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
+ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
+
+genome_tiles <- binned_function(genome_tiles, ctcf_r1_cov, "mean_nozero", "ctcf_r1")
+genome_tiles <- binned_function(genome_tiles, ctcf_r2_cov, "mean_nozero", "ctcf_r2")
+```
+
+Find the ones that are non-zero in the replicates
+
+```{r ctcf_nozero}
+ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = TRUE, non_zero = non_zero)
+
+ctcf_data <- mcols(genome_tiles[ctcf_nonzero])[, c("ctcf_r1", "ctcf_r2")]
+ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
+ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
+```
+
+Plot the CTCF data
+
+```{r ctcf_plot}
+plot(ctcf_data[,1], ctcf_data[,2])
+```
+
+Cool, looks good. Now the cumulative correlations and orthogonal regressions.
+
+```{r ctcf_cum}
+ctcf_cor_quantiles <- run_cum_quantiles(ctcf_data)
+ctcf_odr_quantiles <- run_cum_quantiles(ctcf_data, similarity = odregress_fun)
+```
+
+
+The midway point is where the correlation is stronger than the noise.
