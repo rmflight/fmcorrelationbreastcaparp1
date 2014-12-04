@@ -219,7 +219,7 @@ png(file.path(graph_dir, "methyl_decile_densities.png")); ggplot(methyl_densitie
 ```
 
 
-## Calculate the Orthogonal Regression Line as we add points from either low or high end
+## Calculate Correlation or Orthogonal Regression Line as we add points from either low or high end
 
 What if instead, we did a bootstrap of the orthogonal regression in each range? What would the variance of the slope look like in each of the deciles?
 
