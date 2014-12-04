@@ -54,19 +54,19 @@ non_zero <- "both"
 
 
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k04me3k", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k4me3_r1", "parp1_r1"), non_zero = non_zero, n_points = 10000)
+ggplot(h3k04me3k_v_ln4, aes(x = H3k4me3_r1, y = parp1_r1)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k04me3k_v_ln4[,1]+1), log10(h3k04me3k_v_ln4[,2]+1))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3K27ac", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(h3k27ac_v_ln4, aes(x = H3K27ac, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k27ac", "parp1_r1"), non_zero = non_zero, n_points = 10000)
+ggplot(h3k27ac_v_ln4, aes(x = H3k27ac, y = parp1_r1)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(h3k27ac_v_ln4[,1]+1), log10(h3k27ac_v_ln4[,2]+1))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(c("H3k04me3k", "H3K27ac", "H3K27me3", "H3K36me3", "H3K9me3"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(names(histone_marks), c("parp1_r1", "parp1_r2"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
   correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, non_zero = non_zero, test = TRUE)
@@ -93,27 +93,20 @@ Are these correlations a result of association with the TSS's? One way to test t
 ```{r genome_tiles}
 genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
 
-genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "ln4_read")
-genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "ln5_read")
+genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_r1")
+genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_r2")
 ```
 
 ```{r genome_histone_marks}
-for (i_histone in histone_names){
-  tmp <- read.table(histone_files[i_histone], header = TRUE, sep = ",")
-	names(tmp) <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pvalue", "qvalue", "other", "id")
-	histone_tmp <- GRanges(seqnames = tmp$chrom,
-				          ranges = IRanges(start = tmp$start, end = tmp$end),
-					            mcols = DataFrame(tmp[, c("score", "signal", "pvalue")]), overlap = 0, overlap_ratio = 0)
-	rm(tmp)
-
-	histone_cov <- coverage(histone_tmp, weight = "mcols.signal")
-	genome_tiles <- binned_function(genome_tiles, histone_cov, "mean_nozero", i_histone)
+for (i_name in names(histone_marks)){
+  histone_cov <- coverage(histone_marks[[i_name]], weight = "mcols.signal")
+  genome_tiles <- binned_function(genome_tiles, histone_cov, "mean_nozero", i_name)
 }
 ```
 
 ```{r genome_graph_test}
-genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k04me3k", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(genome_h3k04me3k_v_ln4, aes(x = H3k04me3k, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
+genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k4me3_r1", "parp1_r1"), non_zero = non_zero, n_points = 10000)
+ggplot(genome_h3k04me3k_v_ln4, aes(x = H3k4me3_r1, y = parp1_r1)) + scale_x_log10() + scale_y_log10() + geom_point()
 cor(log(genome_h3k04me3k_v_ln4[,1]+1), log(genome_h3k04me3k_v_ln4[,2]+1))
 ```
 
