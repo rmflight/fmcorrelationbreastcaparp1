@@ -185,5 +185,10 @@ ctcf_cor_quantiles <- run_cum_quantiles(ctcf_data)
 ctcf_odr_quantiles <- run_cum_quantiles(ctcf_data, similarity = odregress_fun)
 ```
 
+```{r ctcf_plots}
+cplot <- ggplot(ctcf_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(cplot)
+cplot + facet_grid(type ~ ., scales = "free")
+```
 
-The midway point is where the correlation is stronger than the noise.
+Here again there is no overlap, but it appears that things get stable at about 1.2. So for the CTCF data, we will keep peaks with a value > 10^1.2, or `r 10^1.2`
