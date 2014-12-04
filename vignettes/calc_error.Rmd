@@ -19,7 +19,7 @@ library(fmdatamcf7parp1)
 
 Because we have a lot of points, and `RStudio` takes time to get the plots, we will open an `X11` plot window to send the plots to.
 
-```{r plotX11}
+```{r plotX11, eval=FALSE}
 X11()
 ```
 
