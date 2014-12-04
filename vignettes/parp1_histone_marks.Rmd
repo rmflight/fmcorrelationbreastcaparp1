@@ -1,6 +1,11 @@
-# Overlap with Histone Marks within Transcription Start Sites
+<!--
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{fmanalysismcf7parp1: Histone Marks}
+% \VignetteDepends{GenomicRanges, fmdatamcf7parp1}
+% \VignettePackage{fmanalysismcf7parp1}
+-->
 
-The histone peaks will be read in from the right files. 
+# Overlap of PARP1 reads with Histone Marks within Transcription Start Sites
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='CairoPNG')
