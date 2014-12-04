@@ -22,17 +22,20 @@ Because we have a lot of points, and `RStudio` takes time to get the plots, we w
 X11()
 ```
 
+## Correlation Changes by Adding Centiles
 
-```{r load_tss_parp1}
-load(file.path(data_dir, "tss_windows.RData"))
+As a check on the data, we will divide the data up into **centiles** (quantiles of 100), and then starting at the low end, calculate the correlation, add the next centile of points, calculate the correlation again, and so on until we have all the points. In addition, we will do the same starting at the high end, and iteratively adding points. This should show us where the correlation starts to stabilize, and which points should probably be removed.
+
+
+### PARP1
+
+```{r load_parp1}
 load(file.path(data_dir, "ln4_reads_unique.RData"))
 load(file.path(data_dir, "ln5_reads_unique.RData"))
-
 genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
-
 ```
 
-In this case we are actually going to calculate the Parp1 sums across the genome.
+In this case we are actually going to calculate the PARP1 sums across 2KB tiles of the genome.
 
 ```{r parp1_abundance}
 ln4_cov <- coverage(ln4_unique, weight = "n_count")
@@ -41,6 +44,8 @@ genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_r1")
 genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_r2")
 ```
 
+What does this look like for a sample?
+
 ```{r sample}
 non_zero <- "both"
 r1_v_r2 <- subsample_nonzeros(mcols(genome_tiles), c("parp1_r1", "parp1_r2"), non_zero = non_zero, n_points = 10000)
@@ -48,7 +53,7 @@ r1_v_r2 <- subsample_nonzeros(mcols(genome_tiles), c("parp1_r1", "parp1_r2"), no
 ggplot(r1_v_r2, aes(x = parp1_r1, y = parp1_r2)) + geom_point() + scale_y_log10() + scale_x_log10()
 ```
 
-Now lets do the orthogonal regression.
+Now lets do the orthogonal regression to see the line of best fit between the replicates.
 
 ```{r odr}
 both_non <- find_non_zeros(mcols(genome_tiles), c("parp1_r1", "parp1_r2"), log_transform = TRUE, non_zero = non_zero)
@@ -69,66 +74,19 @@ lines(parp1_data[,1], parp1_odr$fitted, col = "red")
 png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2], asp = 1); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
 ```
 
-```{r another_regression}
-library(calcFormulas)
-parp1_odr2 <- orthogonalRegression(parp1_data[,1], parp1_data[,2])
-lines(parp1_odr2$xFit, parp1_odr2$yFit)
-parp1_odr2$slope
-parp1_odr2_resid <- sqrt((parp1_data[,1] - parp1_odr2$xFit)^2 + (parp1_data[,2] - parp1_odr2$yFit)^2)
-sum(parp1_odr$err - parp1_odr2_resid)
-```
-OK, so it appears the residuals from the original are correct, and we don't need to redo this all with another method. 
+#### PARP1 Centile Correlations
 
+```{r parp1_centile_correlation}
+parp1_cor_quantiles <- run_cum_quantiles(parp1_data)
 
-Hmm, is there anything in the base histogram?
+odregress_fun <- function(x, y){
+  tmp <- pracma::odregress(x, y)
+  tmp$coef[1]
+}
 
-```{r everything_histogram}
-hist(parp1_odr$err, 200)
+parp1_odr_quantiles <- run_cum_quantiles(parp1_data, similarity = odregress_fun)
 ```
 
-Doesn't look like it. What if we do the low ones?
-
-```{r low_hist}
-low_val <- 1.5
-which_low <- (parp1_data[,1] <= low_val) & (parp1_data[,2] <= low_val)
-low_res <- parp1_odr$err[which_low]
-low_val <- parp1_data[(parp1_data[,1] <= 1.5) & (parp1_data[,2] <= 1.5),]
-```
-
-```{r parp1_deciles}
-parp1_mean <- rowMeans(as.matrix(parp1_data))
-parp1_range <- range(parp1_mean)
-parp1_decile <- quantile(parp1_mean, seq(0, 1, 0.1))
-parp1_split <- cut(parp1_mean, parp1_decile, right = FALSE)
-
-parp1_data_split <- split(parp1_data, parp1_split) # allows us to easily plot to double check data
-
-parp1_resid_split <- split(parp1_odr$err, parp1_split)
-
-parp1_densities <- lapply(seq(1, 10), function(x){
-			   tmp_res <- parp1_resid_split[[x]]
-			   if (length(tmp_res) > 1){
-				   tmp_dens <- stats::density(parp1_resid_split[[x]])
-			   	   data.frame(x = tmp_dens$x, y = tmp_dens$y, decile = x)
-			   } else {
-				   data.frame(x = 0, y = 1, decile = x)
-			   }
-})
-parp1_densities <- do.call(rbind, parp1_densities)
-parp1_densities$decile <- factor(parp1_densities$decile, levels = seq(10, 1), ordered = TRUE)
-```
-
-```{r graph_density_parp1}
-ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 2)
-```
-
-```{r parp1_gd_save, eval=FALSE}
-png(file = file.path(graph_dir, "parp1_decile_density.png")); ggplot(parp1_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
-```
-
-There is definitely a difference in the lineshapes, but I don't know if it is actually diagnostic.
-
-Maybe this will work better for one of the other datasets?
 
 ## Methylation
 
@@ -184,87 +142,6 @@ lines(methyl_data[,1], methyl_ord$fitted, col = "red")
 ```{r save_methyl_plot, eval = FALSE}
 png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl_data[,1], methyl_data[,2], asp = 1); lines(methyl_data[,1], methyl_ord$fitted, col = "red"); dev.off();
 ```
-
-This looks pretty good. Now, for each part of the range of values, lets get out the points and generate a density estimate for those points residuals. What I am hoping to see is a larger and larger SD as we move across the decile.
-
-```{r density_decile}
-methyl_mean <- rowMeans(as.matrix(methyl_data))
-methyl_decile <- quantile(methyl_mean, seq(0, 1, 0.1)) 
-methyl_split <- cut(methyl_mean, methyl_decile, right = FALSE)
-
-methyl_data_split <- split(methyl_data, methyl_split)
-methyl_resid_split <- split(methyl_ord$err, methyl_split)
-
-methyl_densities <- lapply(seq(1, 10), function(x){
-			   tmp_res <- methyl_resid_split[[x]]
-			   if (length(tmp_res) > 1){
-				   tmp_dens <- stats::density(methyl_resid_split[[x]])
-			   	   data.frame(x = tmp_dens$x, y = tmp_dens$y, decile = x)
-			   } else {
-				   data.frame(x = 0, y = 1, decile = x)
-			   }
-})
-methyl_densities <- do.call(rbind, methyl_densities)
-methyl_densities$decile <- factor(methyl_densities$decile, levels = seq(10, 1), ordered = TRUE)
-```
-
-Now plot the densities.
-
-```{r plot_methyl_densities}
-ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 2)
-```
-
-```{r methyl_gd_save, eval=FALSE}
-png(file.path(graph_dir, "methyl_decile_densities.png")); ggplot(methyl_densities, aes(x = x, y = y, color = decile)) + geom_line(size = 3); dev.off();
-```
-
-
-## Calculate Correlation or Orthogonal Regression Line as we add points from either low or high end
-
-What if instead, we did a bootstrap of the orthogonal regression in each range? What would the variance of the slope look like in each of the deciles?
-
-```{r parp1_odregress}
-parp1_split_indices <- generate_quantile_indices(parp1_mean, n_quantile = 101)
-
-parp1_low2hi_indices <- cum_indices(parp1_split_indices, "low_to_high")
-parp1_hi2low_indices <- cum_indices(parp1_split_indices, "high_to_low")
-
-parp1_low2hi_odregress <- lapply(parp1_low2hi_indices, function(in_split){
-				 tmp_regress <- odregress(parp1_data[in_split,1], parp1_data[in_split,2])
-         tmp_regress$coeff
-})
-parp1_low2hi_odregress <- do.call(rbind, parp1_low2hi_odregress)
-
-parp1_hi2low_odregress <- lapply(parp1_hi2low_indices, function(in_split){
-  tmp_regress <- odregress(parp1_data[in_split, 1], parp1_data[in_split, 2])
-  tmp_regress$coeff
-})
-parp1_hi2low_odregress <- do.call(rbind, parp1_hi2low_odregress)
-```
-
-```{r plot_odregress}
-plot(parp1_low2hi_odregress[,1])
-plot(parp1_hi2low_odregress[,1])
-```
-
-## Calculate Change in Correlation as we Add Centiles
-
-As much as I would prefer to be using the orthogonal regression method above, because we are measuring correlation in the other analyses, we should probably use change in correlation, as it will be easier to explain and defend in the manuscript.
-
-### Parp1
-
-```{r parp1_centile_correlation}
-parp1_cor_quantiles <- run_cum_quantiles(parp1_data)
-
-odregress_fun <- function(x, y){
-  tmp <- pracma::odregress(x, y)
-  tmp$coef[1]
-}
-
-parp1_odr_quantiles <- run_cum_quantiles(parp1_data, similarity = odregress_fun)
-```
-
-### Methylation
 
 ```{r methyl_centiles}
 methyl_cor_quantiles <- run_cum_quantiles(methyl_data)
