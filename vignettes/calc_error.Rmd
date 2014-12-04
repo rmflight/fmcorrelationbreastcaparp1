@@ -14,6 +14,7 @@ library(parp1)
 library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
+library(fmdatamcf7parp1)
 ```
 
 Because we have a lot of points, and `RStudio` takes time to get the plots, we will open an `X11` plot window to send the plots to.
@@ -30,16 +31,16 @@ As a check on the data, we will divide the data up into **centiles** (quantiles 
 ### PARP1
 
 ```{r load_parp1}
-load(file.path(data_dir, "ln4_reads_unique.RData"))
-load(file.path(data_dir, "ln5_reads_unique.RData"))
+data(parp1_ln4_unique)
+data(parp1_ln5_unique)
 genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
 ```
 
 In this case we are actually going to calculate the PARP1 sums across 2KB tiles of the genome.
 
 ```{r parp1_abundance}
-ln4_cov <- coverage(ln4_unique, weight = "n_count")
-ln5_cov <- coverage(ln5_unique, weight = "n_count")
+ln4_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+ln5_cov <- coverage(parp1_ln5_unique, weight = "n_count")
 genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_r1")
 genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_r2")
 ```
@@ -87,27 +88,19 @@ odregress_fun <- function(x, y){
 parp1_odr_quantiles <- run_cum_quantiles(parp1_data, similarity = odregress_fun)
 ```
 
+```{r plotthem, fig.keep='all'}
+p <- ggplot(parp1_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(p)
+p + facet_grid(type ~ ., scales = "free")
+```
+
+From these plots, we have the ideal case where the correlations actually cross just around 1.25. So we will use 10^1.25 or `r 10^1.25` as our minimum cutoff for the PARP1 data.
 
 ## Methylation
 
 ```{r load_methyl}
-methyl_names <- c("bin", "chrom", "start", "end", "name", "score", "strand", "thickStart", "thickEnd", "itemRGB", "readCount", "percentMeth")
-methyl_path <- file.path(data_dir, "methylation_data")
-methyl_files <- file.path(methyl_path, dir(methyl_path, pattern = "mcf7_methyl"))
-
-rep1 <- read.table(methyl_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep1) <- methyl_names
-methyl_rep1 <- GRanges(seqnames = rep1$chrom,
-                       strand = rep1$strand,
-                      ranges = IRanges(start = rep1$start, width = 1),
-                      mcols = DataFrame(rep1[, c("readCount", "percentMeth")]))
-
-rep2 <- read.table(methyl_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep2) <- methyl_names
-methyl_rep2 <- GRanges(seqnames = rep2$chrom,
-                       strand = rep2$strand,
-                      ranges = IRanges(start = rep2$start, width = 1),
-                      mcols = DataFrame(rep2[, c("readCount", "percentMeth")]))
+data(methyl_rep1)
+data(methyl_rep2)
 
 mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
 mcols(methyl_rep2)$methyl_read <- mcols(methyl_rep2)$mcols.readCount * mcols(methyl_rep2)$mcols.percentMeth / 100
@@ -151,24 +144,8 @@ methyl_odr_quantiles <- run_cum_quantiles(methyl_data, similarity = odregress_fu
 ### CTCF
 
 ```{r load_ctcf_data}
-ctcf_names <- c("chrom", "start", "end", "name", "score", "strand", "signal", "pValue", "qValue")
-ctcf_path <- file.path(data_dir, "ctcf_peaks")
-ctcf_files <- file.path(ctcf_path, dir(ctcf_path, pattern = "narrowPeak.gz"))
-rep1 <- read.table(ctcf_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-
-names(rep1) <- ctcf_names
-ctcf_rep1 <- GRanges(seqnames = rep1$chrom,
-                     ranges = IRanges(start = rep1$start, end = rep1$end),
-                     mcols = DataFrame(rep1[, c("signal", "pValue")]))
-#mcols(ctcf_rep1)$mcols.signal <- log10(mcols(ctcf_rep1)$mcols.signal + 1)
-
-rep2 <- read.table(ctcf_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep2) <- ctcf_names
-ctcf_rep2 <- GRanges(seqnames = rep2$chrom,
-                     ranges = IRanges(start = rep2$start, end = rep2$end),
-                     mcols = DataFrame(rep2[, c("signal", "pValue")]))
-
-#mcols(ctcf_rep2)$mcols.signal <- log10(mcols(ctcf_rep2)$mcols.signal + 1)
+data(ctcf_rep1)
+data(ctcf_rep2)
 
 ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
 ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
