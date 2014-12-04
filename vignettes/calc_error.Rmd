@@ -141,6 +141,14 @@ methyl_cor_quantiles <- run_cum_quantiles(methyl_data)
 methyl_odr_quantiles <- run_cum_quantiles(methyl_data, similarity = odregress_fun)
 ```
 
+```{r methyl_plot}
+m <- ggplot(methyl_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(m)
+m + facet_grid(type ~ ., scales = "free")
+```
+
+Unfortunately in this case the lines do not overlap. However, there is a dip in the `hi2low` at ~ 1, and the values for the `low2hi` have started getting above the noise of the low end by ~ 1. So we will use 10^1 or 10 as our cutoff for the methylation reads.
+
 ### CTCF
 
 ```{r load_ctcf_data}
