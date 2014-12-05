@@ -70,3 +70,15 @@ mean_transcript <- mean_transcript[keep_transcript]
 mcols(tss_windows)$mcf7_expr <- mean_transcript
 ```
 
+Now do a comparison.
+
+```{r set_non_zero}
+non_zero <- "both"
+```
+
+
+```{r graphit}
+expr_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("mcf7_expr", "mcf7_read"), non_zero = non_zero, n_points = 10000)
+ggplot(expr_v_mcf7, aes(x = mcf7_expr, y = mcf7_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(expr_v_mcf7[,1]+1), log10(expr_v_mcf7[,2]+1))
+```
