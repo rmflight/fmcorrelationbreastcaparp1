@@ -1,3 +1,10 @@
+<!--
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{fmanalysisbreastcaparp1: Methylation}
+% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1}
+% \VignettePackage{fmanalysisbreastcaparp1}
+-->
+
 # Overlap with Methylation Read Coverage within Transcription Start Sites
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
@@ -11,7 +18,7 @@ library(magrittr)
 options(mc.cores = 10)
 library(parallel)
 library(ggplot2)
-library(parp1)
+library(fmanalysisbreastcaparp1)
 library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
@@ -19,42 +26,26 @@ library(BSgenome.Hsapiens.UCSC.hg19)
 In the initial analysis, we will use the TSS windows. 
 
 ```{r load_tss_parp1}
-load(file.path(data_dir, "tss_windows.RData"))
-load(file.path(data_dir, "ln4_reads_unique.RData"))
-load(file.path(data_dir, "ln5_reads_unique.RData"))
+data(parp1_ln4_unique)
+data(parp1_ln5_unique)
+data(methyl_rep1)
+data(methyl_rep2)
+data(tss_windows)
 ```
 
 Calculate the weighted coverage of the ln4 and ln5 sample reads, and then sum the reads in each TSS window.
 
 ```{r ln4_ln5_counts}
-ln4_cov <- coverage(ln4_unique, weight = "n_count")
-ln5_cov <- coverage(ln5_unique, weight = "n_count")
+mcf7_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+mdamb231_cov <- coverage(parp1_ln5_unique, weight = "n_count")
 
-tss_windows <- binned_function(tss_windows, ln4_cov, "sum", "ln4_read")
-tss_windows <- binned_function(tss_windows, ln5_cov, "sum", "ln5_read")
+tss_windows <- binned_function(tss_windows, mcf7_cov, "sum", "parp1_mcf7")
+tss_windows <- binned_function(tss_windows, mdamb231_cov, "sum", "parp1_mdamb231")
 ```
 
-Here we read in the methylation data and generate a **true** value for the amount of methylation covering a read, by multiplying the `readCount` by the `percentMeth`, we should generate the **methylation** reads only, which is what we are interested in.
+With the methylation data we want to generate a **true** value for the amount of methylation covering a read, by multiplying the `readCount` by the `percentMeth`, we should generate the **methylation** reads only, which is what we are interested in.
 
-```{r read_ctcf}
-methyl_names <- c("bin", "chrom", "start", "end", "name", "score", "strand", "thickStart", "thickEnd", "itemRGB", "readCount", "percentMeth")
-methyl_path <- file.path(data_dir, "methylation_data")
-methyl_files <- file.path(methyl_path, dir(methyl_path, pattern = "mcf7_methyl"))
-
-rep1 <- read.table(methyl_files[1], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep1) <- methyl_names
-methyl_rep1 <- GRanges(seqnames = rep1$chrom,
-                       strand = rep1$strand,
-                      ranges = IRanges(start = rep1$start, width = 1),
-                      mcols = DataFrame(rep1[, c("readCount", "percentMeth")]))
-
-rep2 <- read.table(methyl_files[2], header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-names(rep2) <- methyl_names
-methyl_rep2 <- GRanges(seqnames = rep2$chrom,
-                       strand = rep2$strand,
-                      ranges = IRanges(start = rep2$start, width = 1),
-                      mcols = DataFrame(rep2[, c("readCount", "percentMeth")]))
-
+```{r read_methylation}
 mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
 mcols(methyl_rep2)$methyl_read <- mcols(methyl_rep2)$mcols.readCount * mcols(methyl_rep2)$mcols.percentMeth / 100
 
@@ -73,21 +64,19 @@ non_zero <- "both"
 
 
 ```{r graphit}
-r1_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(r1_v_ln4, aes(x = methyl_r1, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(r1_v_ln4[,1]+1), log10(r1_v_ln4[,2]+1))
+r1_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(r1_v_mcf7, aes(x = methyl_r1, y = parp1_mcf7)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(r1_v_mcf7[,1]+1), log10(r1_v_mcf7[,2]+1))
 
-r2_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r2", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(r2_v_ln4, aes(x = methyl_r2, y = ln4_read)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(r2_v_ln4[,1]+1), log10(r2_v_ln4[,2]+1))
+r2_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r2", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(r2_v_mcf7, aes(x = methyl_r2, y = parp1_mcf7)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(r2_v_mcf7[,1]+1), log10(r2_v_mcf7[,2]+1))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(c("methyl_r1", "methyl_r2"), c("ln4_read", "ln5_read"), stringsAsFactors = FALSE)
-all_comb <- rbind(all_comb, c("methyl_r1", "methyl_r2"))
-all_comb <- rbind(all_comb, c("ln4_read", "ln5_read"))
+all_comb <- expand.grid(c("methyl_r1", "methyl_r2"), c("parp1_mcf7", "parp1_mdamb231"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
   correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, non_zero = non_zero, test = TRUE)
@@ -104,6 +93,7 @@ out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   subpoints <- subsample_nonzeros(mcols(tss_windows), use_vars, non_zero = non_zero, n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
+out_graphs
 ```
 
 
@@ -114,17 +104,17 @@ Are these correlations a result of association with the TSS's? One way to test t
 ```{r genome_tiles}
 genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
 
-genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "ln4_read")
-genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "ln5_read")
+genome_tiles <- binned_function(genome_tiles, mcf7_cov, "sum", "parp1_mcf7")
+genome_tiles <- binned_function(genome_tiles, mdamb231_cov, "sum", "parp1_mdamb231")
 genome_tiles <- binned_function(genome_tiles, methyl_r1_cov, "sum", "methyl_r1")
 genome_tiles <- binned_function(genome_tiles, methyl_r2_cov, "sum", "methyl_r2")
 ```
 
 
 ```{r genome_graph_test}
-genome_r1_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("methyl_r1", "ln4_read"), non_zero = non_zero, n_points = 10000)
-ggplot(genome_r1_v_ln4, aes(x = methyl_r1, y = ln4_read)) + scale_x_log10() + scale_y_log10() + geom_point()
-cor(log(genome_r1_v_ln4[,1]+1), log(genome_r1_v_ln4[,2]+1))
+genome_r1_v_mcf7 <- subsample_nonzeros(mcols(genome_tiles), c("methyl_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(genome_r1_v_mcf7, aes(x = methyl_r1, y = parp1_mcf7)) + scale_x_log10() + scale_y_log10() + geom_point()
+cor(log(genome_r1_v_mcf7[,1]+1), log(genome_r1_v_mcf7[,2]+1))
 ```
 
 ```{r genome_cor}
