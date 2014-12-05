@@ -140,6 +140,10 @@ convert_to_counted <- function(reads_file, delim = ",", read_start = "startx",
 subsample_nonzeros <- function(data, data_columns, log_transform = TRUE, non_zero = "either", n_points = 1000){
   nz_index <- find_non_zeros(data, data_columns, log_transform, non_zero)
   
+  if (n_points > length(nz_index)){
+    n_points <- length(nz_index)
+  }
+  
   sample_index <- sample(nz_index, size = n_points, replace = FALSE)
   return(as.data.frame(data[sample_index, data_columns]))
 }
