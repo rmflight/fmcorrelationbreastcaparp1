@@ -34,14 +34,14 @@ data(histone_marks)
 data(tss_windows)
 ```
 
-Calculate the weighted coverage of the PARP1 ln4 and ln5 sample reads, and then sum the reads in each TSS window.
+Calculate the weighted coverage of the PARP1 mcf7 and mdamb231 sample reads, and then sum the reads in each TSS window.
 
-```{r ln4_ln5_counts}
-ln4_cov <- coverage(parp1_ln4_unique, weight = "n_count")
-ln5_cov <- coverage(parp1_ln5_unique, weight = "n_count")
+```{r mcf7_mdamb231_counts}
+mcf7_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+mdamb231_cov <- coverage(parp1_ln5_unique, weight = "n_count")
 
-tss_windows <- binned_function(tss_windows, ln4_cov, "sum", "parp1_r1")
-tss_windows <- binned_function(tss_windows, ln5_cov, "sum", "parp1_r2")
+tss_windows <- binned_function(tss_windows, mcf7_cov, "sum", "parp1_mcf7")
+tss_windows <- binned_function(tss_windows, mdamb231_cov, "sum", "parp1_mdamb231")
 ```
 
 
@@ -61,19 +61,19 @@ non_zero <- "both"
 
 
 ```{r graphit}
-h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k4me3_r1", "parp1_r1"), non_zero = non_zero, n_points = 10000)
-ggplot(h3k04me3k_v_ln4, aes(x = H3k4me3_r1, y = parp1_r1)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(h3k04me3k_v_ln4[,1]+1), log10(h3k04me3k_v_ln4[,2]+1))
+h3k4me3k_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("H3k4me3_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(h3k4me3k_v_mcf7, aes(x = H3k4me3_r1, y = parp1_mcf7)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k4me3k_v_mcf7[,1]+1), log10(h3k4me3k_v_mcf7[,2]+1))
 
-h3k27ac_v_ln4 <- subsample_nonzeros(mcols(tss_windows), c("H3k27ac", "parp1_r1"), non_zero = non_zero, n_points = 10000)
-ggplot(h3k27ac_v_ln4, aes(x = H3k27ac, y = parp1_r1)) + geom_point() + scale_y_log10() + scale_x_log10()
-cor(log10(h3k27ac_v_ln4[,1]+1), log10(h3k27ac_v_ln4[,2]+1))
+h3k27ac_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("H3k27ac", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(h3k27ac_v_mcf7, aes(x = H3k27ac, y = parp1_mcf7)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(h3k27ac_v_mcf7[,1]+1), log10(h3k27ac_v_mcf7[,2]+1))
 ```
 
 Cool. Now we are showing some promise. Let's do them all.
 
 ```{r grab_all}
-all_comb <- expand.grid(names(histone_marks), c("parp1_r1", "parp1_r2"), stringsAsFactors = FALSE)
+all_comb <- expand.grid(names(histone_marks), c("parp1_mcf7", "parp1_mdamb231"), stringsAsFactors = FALSE)
 out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
   #print(i_row)
   correlate_non_zero(mcols(tss_windows), as.character(all_comb[i_row,]), log_transform = TRUE, non_zero = non_zero, test = TRUE)
@@ -84,12 +84,13 @@ rownames(out_cor) <- all_comb_names
 out_cor
 ```
 
-```{r graphs}
+```{r graphs, fig.keep='all'}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
   subpoints <- subsample_nonzeros(mcols(tss_windows), use_vars, non_zero = non_zero, n_points = 10000)
   ggplot(subpoints, aes_string(x = use_vars[1], y = use_vars[2])) + geom_point() + scale_y_log10() + scale_x_log10()
 })
+out_graphs
 ```
 
 
@@ -100,8 +101,8 @@ Are these correlations a result of association with the TSS's? One way to test t
 ```{r genome_tiles}
 genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
 
-genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_r1")
-genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_r2")
+genome_tiles <- binned_function(genome_tiles, mcf7_cov, "sum", "parp1_mcf7")
+genome_tiles <- binned_function(genome_tiles, mdamb231_cov, "sum", "parp1_mdamb231")
 ```
 
 ```{r genome_histone_marks}
@@ -112,9 +113,9 @@ for (i_name in names(histone_marks)){
 ```
 
 ```{r genome_graph_test}
-genome_h3k04me3k_v_ln4 <- subsample_nonzeros(mcols(genome_tiles), c("H3k4me3_r1", "parp1_r1"), non_zero = non_zero, n_points = 10000)
-ggplot(genome_h3k04me3k_v_ln4, aes(x = H3k4me3_r1, y = parp1_r1)) + scale_x_log10() + scale_y_log10() + geom_point()
-cor(log(genome_h3k04me3k_v_ln4[,1]+1), log(genome_h3k04me3k_v_ln4[,2]+1))
+genome_h3k4me3k_v_mcf7 <- subsample_nonzeros(mcols(genome_tiles), c("H3k4me3_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
+ggplot(genome_h3k4me3k_v_mcf7, aes(x = H3k4me3_r1, y = parp1_mcf7)) + scale_x_log10() + scale_y_log10() + geom_point()
+cor(log(genome_h3k4me3k_v_mcf7[,1]+1), log(genome_h3k4me3k_v_mcf7[,2]+1))
 ```
 
 ```{r genome_cor}
