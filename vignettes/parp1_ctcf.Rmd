@@ -1,3 +1,10 @@
+<!--
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF Binding}
+% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1}
+% \VignettePackage{fmanalysisbreastcaparp1}
+-->
+
 # Overlap with CTCF Chip-Seq within Transcription Start Sites
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
@@ -5,7 +12,6 @@ knitr::opts_chunk$set(dev='CairoPNG')
 ```
 
 ```{r use_dir}
-data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
 library(GenomicRanges)
 library(magrittr)
 options(mc.cores = 10)
@@ -14,6 +20,7 @@ library(ggplot2)
 library(parp1)
 library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
+library(fmdatabreastcaparp1)
 ```
 
 In the initial analysis, we will use the TSS windows. 
