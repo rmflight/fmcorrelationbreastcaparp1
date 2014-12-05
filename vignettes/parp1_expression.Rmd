@@ -55,3 +55,18 @@ expr_data$ENSEMBL <- affy_2_ensembl[,2]
 
 Because we have many cases where there are multiple transcripts per Affy ID, and multiple Affy IDs for some transcripts, we need to go through each of the Ensembl transcripts and do averaging if necessary. 
 
+Get the average value by transcript.
+
+```{r average_by_transcript}
+mean_transcript <- tapply(expr_data$VALUE, expr_data$ENSEMBL, mean)
+```
+
+And put it onto the `tss_windows` object.
+
+```{r add_to_tss}
+keep_transcript <- intersect(names(mean_transcript), names(tss_windows))
+tss_windows <- tss_windows[keep_transcript]
+mean_transcript <- mean_transcript[keep_transcript]
+mcols(tss_windows)$mcf7_expr <- mean_transcript
+```
+
