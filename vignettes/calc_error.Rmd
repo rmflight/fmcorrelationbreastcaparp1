@@ -62,7 +62,7 @@ What does this look like for a sample?
 non_zero <- "both"
 r1_v_r2 <- subsample_nonzeros(mcols(genome_tiles), c("parp1_mcf7", "parp1_mdamb231"), non_zero = non_zero, n_points = 10000)
 
-ggplot(r1_v_r2, aes(x = parp1_r1, y = parp1_r2)) + geom_point() + scale_y_log10() + scale_x_log10()
+ggplot(r1_v_r2, aes(x = parp1_mcf7, y = parp1_mdamb231)) + geom_point() + scale_y_log10() + scale_x_log10()
 ```
 
 Now lets do the orthogonal regression to see the line of best fit between the replicates.
