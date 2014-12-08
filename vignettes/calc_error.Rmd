@@ -153,7 +153,7 @@ methyl_cor_quantiles <- run_cum_quantiles(methyl_data)
 methyl_odr_quantiles <- run_cum_quantiles(methyl_data, similarity = odregress_fun)
 ```
 
-```{r methyl_plot}
+```{r methyl_plot2}
 m <- ggplot(methyl_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
 print(m)
 m + facet_grid(type ~ ., scales = "free")
