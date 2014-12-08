@@ -140,6 +140,7 @@ What does the orthogonal regression look like?
 
 ```{r methyl_ord}
 methyl_ord <- odregress(methyl_data[,1], methyl_data[,2])
+plot(methyl_data[,1], methyl_data[,2], asp = 1)
 lines(methyl_data[,1], methyl_ord$fitted, col = "red")
 ```
 
