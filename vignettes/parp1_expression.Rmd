@@ -8,7 +8,7 @@
 # Correlation of transcript abundance and Parp1 at TSS
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
-knitr::opts_chunk$set(dev='CairoPNG')
+knitr::opts_chunk$set(dev='png')
 ```
 
 ```{r use_dir}
@@ -17,8 +17,6 @@ library(magrittr)
 options(mc.cores = 10)
 library(parallel)
 library(ggplot2)
-library(rmfNotifier)
-library(parp1)
 library(BiocParallel)
 library(GEOquery)
 library(hgu133plus2.db)
