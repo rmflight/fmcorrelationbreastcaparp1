@@ -10,7 +10,7 @@
 The easiest way I can think of to use the minimum cutoffs is to set anything below that cutoff to 0 in the object.
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
-knitr::opts_chunk$set(dev='CairoPNG')
+knitr::opts_chunk$set(dev='png')
 ```
 
 ```{r use_dir}
