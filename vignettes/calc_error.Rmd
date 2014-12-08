@@ -23,7 +23,7 @@ library(ggplot2)
 library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
-library(fmdatabreastcaparp1)
+library(fmanalysisbreastcaparp1)
 ```
 
 Because we have a lot of points, and `RStudio` takes time to get the plots, we will open an `X11` plot window to send the plots to.
