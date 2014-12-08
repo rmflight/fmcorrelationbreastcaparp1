@@ -8,7 +8,7 @@
 # Overlap with CTCF Chip-Seq within Transcription Start Sites
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
-knitr::opts_chunk$set(dev='CairoPNG')
+knitr::opts_chunk$set(dev='png')
 ```
 
 ```{r use_dir}

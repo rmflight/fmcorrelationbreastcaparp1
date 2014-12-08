@@ -6,7 +6,7 @@
 -->
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
-knitr::opts_chunk$set(dev='CairoPNG')
+knitr::opts_chunk$set(dev='png')
 ```
 
 # Calculating the lower limit of the error of the reads
