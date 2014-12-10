@@ -1,0 +1,218 @@
+<!--
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{fmanalysismcf7parp1: Error Analysis}
+% \VignetteDepends{GenomicRanges, fmdatamcf7parp1}
+% \VignettePackage{fmanalysismcf7parp1}
+-->
+
+```{r setupKnitr, echo=FALSE, results='hide'}
+knitr::opts_chunk$set(dev='png')
+```
+
+# Calculating the lower limit of the error of the reads
+
+In doing some of the exploratory analysis and examining replicates where they exist (i.e. CTCF and methylation), there is a limit at which the correlative structure seems to break down due to an additive noise component. Although the PARP1 data is for two different cell lines, it may also be instructive to compare the cell lines, as they are both from breast cancer cell lines. Ideally, we might be able to simply provide a minimum value to the function that calculates the correlations, but we first need to be able to justify the minimum value that we are using. To do that, we need to be able to show where the correlation breaks down. 
+
+```{r setup}
+graph_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1/graphs"
+library(GenomicRanges)
+library(magrittr)
+options(mc.cores = 10)
+library(parallel)
+library(ggplot2)
+library(BiocParallel)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(pracma)
+library(fmanalysisbreastcaparp1)
+```
+
+Because we have a lot of points, and `RStudio` takes time to get the plots, we will open an `X11` plot window to send the plots to.
+
+```{r plotX11, eval=FALSE}
+X11()
+```
+
+## Correlation Changes by Adding Centiles
+
+As a check on the data, we will divide the data up into **centiles** (quantiles of 100), and then starting at the low end, calculate the correlation, add the next centile of points, calculate the correlation again, and so on until we have all the points. In addition, we will do the same starting at the high end, and iteratively adding points. This should show us where the correlation starts to stabilize, and which points should probably be removed.
+
+
+### PARP1
+
+```{r load_parp1}
+data(parp1_ln4_unique)
+data(parp1_ln5_unique)
+genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
+```
+
+In this case we are actually going to calculate the PARP1 sums across 2KB tiles of the genome.
+
+```{r parp1_abundance}
+mcols(parp1_ln4_unique)$norm <- mcols(parp1_ln4_unique)$n_count / sum(mcols(parp1_ln4_unique)$n_count)
+mcols(parp1_ln5_unique)$norm <- mcols(parp1_ln5_unique)$n_count / sum(mcols(parp1_ln5_unique)$n_count)
+ln4_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+ln5_cov <- coverage(parp1_ln5_unique, weight = "n_count")
+genome_tiles <- binned_function(genome_tiles, ln4_cov, "sum", "parp1_mcf7")
+genome_tiles <- binned_function(genome_tiles, ln5_cov, "sum", "parp1_mdamb231")
+```
+
+What does this look like for a sample?
+
+```{r sample}
+non_zero <- "both"
+r1_v_r2 <- subsample_nonzeros(mcols(genome_tiles), c("parp1_mcf7", "parp1_mdamb231"), non_zero = non_zero, n_points = 10000)
+
+ggplot(r1_v_r2, aes(x = parp1_mcf7, y = parp1_mdamb231)) + geom_point() + scale_y_log10() + scale_x_log10()
+```
+
+Now lets do the orthogonal regression to see the line of best fit between the replicates.
+
+```{r odr}
+both_non <- find_non_zeros(mcols(genome_tiles), c("parp1_mcf7", "parp1_mdamb231"), log_transform = TRUE, non_zero = non_zero)
+parp1_data <- mcols(genome_tiles[both_non])
+parp1_data[,1] <- log10(parp1_data[,1] + 1)
+parp1_data[,2] <- log10(parp1_data[,2] + 1)
+parp1_odr <- odregress(parp1_data[,1], parp1_data[,2])
+```
+
+Plot everything!
+
+```{r plot_everything}
+plot(parp1_data[,1], parp1_data[,2], asp = 1)
+lines(parp1_data[,1], parp1_odr$fitted, col = "red")
+```
+
+```{r save_parp1_everything, eval=FALSE}
+png(file = file.path(graph_dir, "parp1_reps.png")); plot(parp1_data[,1], parp1_data[,2], asp = 1); lines(parp1_data[,1], parp1_odr$fitted, col = "red"); dev.off();
+```
+
+#### PARP1 Centile Correlations
+
+```{r parp1_centile_correlation}
+parp1_cor_quantiles <- run_cum_quantiles(parp1_data)
+
+odregress_fun <- function(x, y){
+  tmp <- pracma::odregress(x, y)
+  tmp$coef[1]
+}
+
+parp1_odr_quantiles <- run_cum_quantiles(parp1_data, similarity = odregress_fun)
+```
+
+```{r plotthem, fig.keep='all'}
+p <- ggplot(parp1_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(p)
+p + facet_grid(type ~ ., scales = "free")
+```
+
+From these plots, we have the ideal case where the correlations actually cross just around 1.25. So we will use 10^1.25 or `r 10^1.25` as our minimum cutoff for the PARP1 data.
+
+## Methylation
+
+```{r load_methyl}
+data(methyl_rep1)
+data(methyl_rep2)
+
+mcols(methyl_rep1)$methyl_read <- mcols(methyl_rep1)$mcols.readCount * mcols(methyl_rep1)$mcols.percentMeth / 100
+mcols(methyl_rep2)$methyl_read <- mcols(methyl_rep2)$mcols.readCount * mcols(methyl_rep2)$mcols.percentMeth / 100
+
+methyl_r1_cov <- coverage(methyl_rep1, weight = "methyl_read")
+methyl_r2_cov <- coverage(methyl_rep2, weight = "methyl_read")
+genome_tiles <- binned_function(genome_tiles, methyl_r1_cov, "sum", "methyl_r1")
+genome_tiles <- binned_function(genome_tiles, methyl_r2_cov, "sum", "methyl_r2")
+```
+
+Now plot the methyl ones.
+
+```{r methyl_transform}
+methyl_nonzero <- find_non_zeros(mcols(genome_tiles), c("methyl_r1", "methyl_r2"), log_transform = TRUE, non_zero = non_zero)
+
+methyl_data <- mcols(genome_tiles[methyl_nonzero])[,c("methyl_r1", "methyl_r2")]
+methyl_data[,1] <- log10(methyl_data[,1] + 1)
+methyl_data[,2] <- log10(methyl_data[,2] + 1)
+```
+
+```{r methyl_plot}
+plot(methyl_data[,1], methyl_data[,2], asp = 1)
+```
+
+What does the orthogonal regression look like?
+
+```{r methyl_ord}
+methyl_ord <- odregress(methyl_data[,1], methyl_data[,2])
+plot(methyl_data[,1], methyl_data[,2], asp = 1)
+lines(methyl_data[,1], methyl_ord$fitted, col = "red")
+```
+
+```{r save_methyl_plot, eval = FALSE}
+png(file = file.path(graph_dir, "methyl_reps.png")); plot(methyl_data[,1], methyl_data[,2], asp = 1); lines(methyl_data[,1], methyl_ord$fitted, col = "red"); dev.off();
+```
+
+```{r methyl_centiles}
+methyl_cor_quantiles <- run_cum_quantiles(methyl_data)
+methyl_odr_quantiles <- run_cum_quantiles(methyl_data, similarity = odregress_fun)
+```
+
+```{r methyl_plot2}
+m <- ggplot(methyl_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(m)
+m + facet_grid(type ~ ., scales = "free")
+```
+
+Unfortunately in this case the lines do not overlap. However, there is a dip in the `hi2low` at ~ 1, and the values for the `low2hi` have started getting above the noise of the low end by ~ 1. So we will use 10^1 or 10 as our cutoff for the methylation reads.
+
+### CTCF
+
+```{r load_ctcf_data}
+data(ctcf_rep1)
+data(ctcf_rep2)
+
+ctcf_r1_cov <- coverage(ctcf_rep1, weight = "mcols.signal")
+ctcf_r2_cov <- coverage(ctcf_rep2, weight = "mcols.signal")
+
+genome_tiles <- binned_function(genome_tiles, ctcf_r1_cov, "mean_nozero", "ctcf_r1")
+genome_tiles <- binned_function(genome_tiles, ctcf_r2_cov, "mean_nozero", "ctcf_r2")
+```
+
+Find the ones that are non-zero in the replicates
+
+```{r ctcf_nozero}
+ctcf_nonzero <- find_non_zeros(mcols(genome_tiles), c("ctcf_r1", "ctcf_r2"), log_transform = TRUE, non_zero = non_zero)
+
+ctcf_data <- mcols(genome_tiles[ctcf_nonzero])[, c("ctcf_r1", "ctcf_r2")]
+ctcf_data[,1] <- log10(ctcf_data[,1] + 1)
+ctcf_data[,2] <- log10(ctcf_data[,2] + 1)
+```
+
+Plot the CTCF data
+
+```{r ctcf_plot}
+plot(ctcf_data[,1], ctcf_data[,2], asp = 1)
+```
+
+Cool, looks good. Now the cumulative correlations and orthogonal regressions.
+
+```{r ctcf_cum}
+ctcf_cor_quantiles <- run_cum_quantiles(ctcf_data)
+ctcf_odr_quantiles <- run_cum_quantiles(ctcf_data, similarity = odregress_fun)
+```
+
+```{r ctcf_plots}
+cplot <- ggplot(ctcf_cor_quantiles, aes(x = cut, y = cor, color = type)) + geom_point()
+print(cplot)
+cplot + facet_grid(type ~ ., scales = "free")
+```
+
+Here again there is no overlap, but it appears that things get stable at about 1.2. So for the CTCF data, we will keep peaks with a value > 10^1.2, or `r 10^1.2`
+
+## Significance
+
+We need to ask, though, what significance does this hold? The PARP1 is the worst case, in that it actually shows increasing as one goes from `hi2low`, and general increasing from `low2hi`. However, in all other cases, the `hi2low` is rather stable, meaning that **adding** these low abundance values does not seem to impact the correlation. This implies that **removing the low points will not change the correlations** with other datasets. However, at least we know what values to use if we want to test.
+
+
+### Session Info
+
+```{r session_info, echo=FALSE}
+Sys.time()
+sessionInfo()
+```
