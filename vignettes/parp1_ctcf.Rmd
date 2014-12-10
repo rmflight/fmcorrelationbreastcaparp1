@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF Binding}
-% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1}
+% \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
@@ -13,11 +13,7 @@ knitr::opts_chunk$set(dev='png')
 
 ```{r use_dir}
 library(GenomicRanges)
-library(magrittr)
-options(mc.cores = 10)
-library(parallel)
 library(ggplot2)
-library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(fmanalysisbreastcaparp1)
 ```
