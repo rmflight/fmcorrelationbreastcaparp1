@@ -32,20 +32,25 @@ install_github("rmflight/fmanalysisbreastcaparp1")
 
 ## Recreating Vignettes
 
-If you want to completely repeat the analysis in the vignettes, you will also need to install the [data package](datalink), and you will want to clone this package locally and run `devtools::build_vignettes`.
+If you want to completely repeat the analysis in the vignettes, you will also need to install the [data package](https://github.com/rmflight/fmdatabreastcaparp1), and you will want to clone this package locally and run `devtools::build_vignettes`.
 
-On the command line, first clone this analysis package:
+On the command line, first install the data package, and clone this analysis package:
 
 ```
+# install the data package
+git clone https://github.com/rmflight/fmdatabreastcaparp1.git
+curl http://figshare_link
+unzip figshare.zip -d fmdatabreastcaparp1/data
+R CMD install fmdatabreastcaparp1
+
+# clone the analysis package
 git clone https://github.com/rmflight/fmanalysisbreastcaparp1.git
 ```
 
-Then in `R`, install the data package, and re-build the vignettes:
+Then in `R`, use `devtools` to re-build the vignettes:
 
 ```
 # assumes you started R in the cloned directory
-library("devtools")
-install_github("rmflight/fmdatabreastcaparp1")
 library("fmdatabreastcaparp1")
 build_vignettes()
 ```
