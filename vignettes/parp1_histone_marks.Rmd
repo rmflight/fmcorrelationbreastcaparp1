@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmanalysisbreastcaparp1: Histone Marks}
-% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1}
+% \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
@@ -13,15 +13,10 @@ The easiest way I can think of to use the minimum cutoffs is to set anything bel
 knitr::opts_chunk$set(dev='png')
 ```
 
-```{r use_dir}
-data_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1_data"
+```{r load_packages}
 library(GenomicRanges)
-library(magrittr)
-options(mc.cores = 10)
-library(parallel)
 library(ggplot2)
 library(fmanalysisbreastcaparp1)
-library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 
