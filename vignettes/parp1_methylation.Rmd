@@ -5,7 +5,7 @@
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
-# Overlap with Methylation Read Coverage within Transcription Start Sites
+# Correlation with Methylated Read Coverage
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')

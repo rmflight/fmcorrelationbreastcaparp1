@@ -5,7 +5,7 @@
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
-# Overlap of PARP1 reads with Histone Marks within Transcription Start Sites
+# Correlation with Histone Marks
 
 The easiest way I can think of to use the minimum cutoffs is to set anything below that cutoff to 0 in the object.
 

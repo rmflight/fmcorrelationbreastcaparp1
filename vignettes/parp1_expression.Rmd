@@ -5,7 +5,7 @@
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
-# Correlation of transcript abundance and Parp1 at TSS
+# Correlation with Transcript Abundance
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')

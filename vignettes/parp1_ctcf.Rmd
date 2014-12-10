@@ -1,11 +1,11 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF Binding}
+% \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF}
 % \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
-# Overlap with CTCF Chip-Seq within Transcription Start Sites
+# Correlation with CTCF
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')
