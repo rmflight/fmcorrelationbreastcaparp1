@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmanalysisbreastcaparp1: Methylation}
-% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1}
+% \VignetteDepends{GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmanalysisbreastcaparp1, fmdatabreastcaparp1}
 % \VignettePackage{fmanalysisbreastcaparp1}
 -->
 
@@ -13,12 +13,8 @@ knitr::opts_chunk$set(dev='png')
 
 ```{r use_dir}
 library(GenomicRanges)
-library(magrittr)
-options(mc.cores = 10)
-library(parallel)
 library(ggplot2)
 library(fmanalysisbreastcaparp1)
-library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 
