@@ -1,0 +1,5 @@
+"corr_value"	"p_value"
+"ctcf_r1_v_parp1_mcf7"	0.113828516000929	0
+"ctcf_r2_v_parp1_mcf7"	0.195945507889486	0
+"ctcf_r1_v_parp1_mdamb231"	0.0446777363347918	7.32747196252603e-15
+"ctcf_r2_v_parp1_mdamb231"	0.083032121176256	0

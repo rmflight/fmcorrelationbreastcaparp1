@@ -1,0 +1,5 @@
+"corr_value"	"p_value"
+"methyl_r1_v_parp1_mcf7"	-0.147373065853624	1.08104725330198e-317
+"methyl_r2_v_parp1_mcf7"	-0.154925200156176	0
+"methyl_r1_v_parp1_mdamb231"	-0.243395726140197	0
+"methyl_r2_v_parp1_mdamb231"	-0.244211296028622	0
