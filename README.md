@@ -13,7 +13,7 @@ This package contains functions and vignettes used in generating correlation res
   * [Histone Marks ChIP-Seq](histone_vignette)
   * [Transcript Expression](expression_vignette)
   
-In addition, the correlations are stored in plain text files available [here](link). These values were reported in the paper.
+In addition, the correlations are stored in plain text files available [here](https://github.com/rmflight/fmanalysisbreastcaparp1/tree/master/inst/correlation_tables). These values were reported in the paper.
 
 ## Citation
 
@@ -37,7 +37,7 @@ If you want to completely repeat the analysis in the vignettes, you will also ne
 On the command line, first clone this analysis package:
 
 ```
-git clone https://github.com/rmflight/fmanalysisbreastcaparp1
+git clone https://github.com/rmflight/fmanalysisbreastcaparp1.git
 ```
 
 Then in `R`, install the data package, and re-build the vignettes:
