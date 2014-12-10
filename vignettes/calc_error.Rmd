@@ -16,11 +16,7 @@ In doing some of the exploratory analysis and examining replicates where they ex
 ```{r setup}
 graph_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1/graphs"
 library(GenomicRanges)
-library(magrittr)
-options(mc.cores = 10)
-library(parallel)
 library(ggplot2)
-library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
 library(fmanalysisbreastcaparp1)
