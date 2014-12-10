@@ -208,3 +208,11 @@ Here again there is no overlap, but it appears that things get stable at about 1
 ## Significance
 
 We need to ask, though, what significance does this hold? The PARP1 is the worst case, in that it actually shows increasing as one goes from `hi2low`, and general increasing from `low2hi`. However, in all other cases, the `hi2low` is rather stable, meaning that **adding** these low abundance values does not seem to impact the correlation. This implies that **removing the low points will not change the correlations** with other datasets. However, at least we know what values to use if we want to test.
+
+
+### Session Info
+
+```{r session_info, echo=FALSE}
+Sys.time()
+sessionInfo()
+```

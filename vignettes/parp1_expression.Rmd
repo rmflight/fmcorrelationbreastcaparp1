@@ -90,3 +90,10 @@ We will save the correlation results in some plain text files.
 saveloc <- "../inst/correlation_tables"
 cat(out_cor, file = file.path(saveloc, "expression_tss.txt"))
 ```
+
+### Session Info
+
+```{r session_info, echo=FALSE}
+Sys.time()
+sessionInfo()
+```

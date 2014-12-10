@@ -138,3 +138,10 @@ saveloc <- "../inst/correlation_tables"
 write.table(out_cor, file = file.path(saveloc, "ctcf_tss.txt"), sep = "\t")
 write.table(genome_cor, file = file.path(saveloc, "ctcf_genome.txt"), sep = "\t")
 ```
+
+### Session Info
+
+```{r session_info, echo=FALSE}
+Sys.time()
+sessionInfo()
+```
