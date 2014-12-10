@@ -17,6 +17,7 @@ knitr::opts_chunk$set(dev='png')
 library(GenomicRanges)
 library(ggplot2)
 library(fmanalysisbreastcaparp1)
+library(fmdatabreastcaparp1)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 

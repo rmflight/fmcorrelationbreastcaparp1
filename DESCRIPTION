@@ -11,6 +11,6 @@ Description: Provides functions for analyzing the nucleosome bound PARP1 in
   The actual analyses are documented in the package vignettes.
 License: BSD
 VignetteBuilder: knitr
-Depends: fmdatabreastcaparp1
+Depends: R (>= 3.1.0)
 Imports: GenomicRanges, IRanges, magrittr, pracma, stats
-Suggests: ggplot2, hgu133plus2.db, BSgenome.Hsapiens.UCSC.hg19 
+Suggests: ggplot2, hgu133plus2.db, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1, knitr

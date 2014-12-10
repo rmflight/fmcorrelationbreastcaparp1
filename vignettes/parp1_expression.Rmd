@@ -16,6 +16,7 @@ library(GenomicRanges)
 library(ggplot2)
 library(hgu133plus2.db)
 library(fmanalysisbreastcaparp1)
+library(fmdatabreastcaparp1)
 ```
 
 In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
