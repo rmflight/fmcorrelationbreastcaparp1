@@ -75,7 +75,12 @@ out_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 out_cor <- do.call(rbind, out_cor)
 rownames(out_cor) <- all_comb_names
-out_cor
+```
+
+TSS correlations:
+
+```{r tss_correlations, results='asis', echo=FALSE}
+kable(out_cor)
 ```
 
 ```{r graphs}
@@ -116,6 +121,20 @@ genome_cor <- lapply(seq(1, nrow(all_comb)), function(i_row){
 all_comb_names <- paste(all_comb[,1], all_comb[,2], sep = "_v_")
 genome_cor <- do.call(rbind, genome_cor)
 rownames(genome_cor) <- all_comb_names
-genome_cor
 ```
 
+
+Genome wide correlations:
+
+```{r genome_cor_display, results='asis', echo=FALSE}
+kable(genome_cor)
+```
+
+
+We will save the correlation results in some plain text files.
+
+```{r save_tables}
+saveloc <- "../inst/correlation_tables"
+write.table(out_cor, file = file.path(saveloc, "ctcf_tss.txt"), sep = "\t")
+write.table(genome_cor, file = file.path(saveloc, "ctcf_genome.txt"), sep = "\t")
+```
