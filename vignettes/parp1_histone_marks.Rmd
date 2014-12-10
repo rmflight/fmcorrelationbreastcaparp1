@@ -79,6 +79,12 @@ rownames(out_cor) <- all_comb_names
 out_cor
 ```
 
+TSS correlations:
+
+```{r tss_correlations, results='asis', echo=FALSE}
+kable(out_cor)
+```
+
 ```{r graphs, fig.keep='all'}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
   use_vars <- as.character(all_comb[i_row,])
@@ -124,3 +130,17 @@ rownames(genome_cor) <- all_comb_names
 genome_cor
 ```
 
+Genome wide correlations:
+
+```{r genome_cor_display, results='asis', echo=FALSE}
+kable(genome_cor)
+```
+
+
+We will save the correlation results in some plain text files.
+
+```{r save_tables}
+saveloc <- "../inst/correlation_tables"
+write.table(out_cor, file = file.path(saveloc, "histone_marks_tss.txt"), sep = "\t")
+write.table(genome_cor, file = file.path(saveloc, "histone_marks_genome.txt"), sep = "\t")
+```
