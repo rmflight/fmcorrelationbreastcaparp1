@@ -1,0 +1,99 @@
+<!--
+% \VignetteEngine{knitr}
+% \VignetteIndexEntry{fmanalysisbreastcaparp1: Expression}
+% \VignetteDepends{GenomicRanges, ggplot2, hgu133plus2.db, fmanalysisbreastcaparp1, fmdatabreastcaparp1}
+% \VignettePackage{fmanalysisbreastcaparp1}
+-->
+
+# Correlation of transcript abundance and Parp1 at TSS
+
+```{r setupKnitr, echo=FALSE, results='hide'}
+knitr::opts_chunk$set(dev='png')
+```
+
+```{r use_dir}
+library(GenomicRanges)
+library(ggplot2)
+library(hgu133plus2.db)
+library(fmanalysisbreastcaparp1)
+```
+
+In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
+
+```{r load_data}
+data(tss_windows)
+data(parp1_ln4_unique)
+data(parp1_ln5_unique)
+data(expr_data)
+```
+
+Calculate the weighted coverage of the ln4 and ln5 sample reads, and then sum the reads in each TSS window.
+
+```{r ln4_ln5_counts}
+mcf7_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+mdamb231_cov <- coverage(parp1_ln5_unique, weight = "n_count")
+
+tss_windows <- binned_function(tss_windows, mcf7_cov, "sum", "mcf7_read")
+tss_windows <- binned_function(tss_windows, mdamb231_cov, "sum", "mdamb231_read")
+```
+
+Now, we need to translate the Affymetrix ID's to the Ensembl ID's that define the transcription start sites.
+
+```{r translate_affy}
+affy_2_ensembl <- select(hgu133plus2.db, keys = rownames(expr_data), columns = "ENSEMBLTRANS")
+expr_data$ENSEMBL <- ""
+expr_data <- expr_data[affy_2_ensembl[,1],]
+expr_data$ENSEMBL <- affy_2_ensembl[,2]
+```
+
+Because we have many cases where there are multiple transcripts per Affy ID, and multiple Affy IDs for some transcripts, we need to go through each of the Ensembl transcripts and do averaging if necessary. 
+
+Get the average value by transcript.
+
+```{r average_by_transcript}
+mean_transcript <- tapply(expr_data$VALUE, expr_data$ENSEMBL, mean)
+```
+
+And put it onto the `tss_windows` object.
+
+```{r add_to_tss}
+keep_transcript <- intersect(names(mean_transcript), names(tss_windows))
+tss_windows <- tss_windows[keep_transcript]
+mean_transcript <- mean_transcript[keep_transcript]
+mcols(tss_windows)$mcf7_expr <- mean_transcript
+```
+
+Now do a comparison.
+
+```{r set_non_zero}
+non_zero <- "both"
+```
+
+
+```{r graphit}
+expr_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("mcf7_expr", "mcf7_read"), non_zero = non_zero, n_points = 10000)
+ggplot(expr_v_mcf7, aes(x = mcf7_expr, y = mcf7_read)) + geom_point() + scale_y_log10() + scale_x_log10()
+cor(log10(expr_v_mcf7[,1]+1), log10(expr_v_mcf7[,2]+1))
+```
+
+Calculate the correlation value using all of the points:
+
+```{r}
+out_cor <- correlate_non_zero(mcols(tss_windows), c("mcf7_expr", "mcf7_read"), log_transform = TRUE, non_zero = non_zero, test = TRUE)
+out_cor
+```
+
+
+We will save the correlation results in some plain text files.
+
+```{r save_tables}
+saveloc <- "../inst/correlation_tables"
+cat(out_cor, file = file.path(saveloc, "expression_tss.txt"))
+```
+
+### Session Info
+
+```{r session_info, echo=FALSE}
+Sys.time()
+sessionInfo()
+```
