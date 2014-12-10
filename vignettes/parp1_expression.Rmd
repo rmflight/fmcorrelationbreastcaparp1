@@ -75,3 +75,18 @@ expr_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("mcf7_expr", "mcf7_read"
 ggplot(expr_v_mcf7, aes(x = mcf7_expr, y = mcf7_read)) + geom_point() + scale_y_log10() + scale_x_log10()
 cor(log10(expr_v_mcf7[,1]+1), log10(expr_v_mcf7[,2]+1))
 ```
+
+Calculate the correlation value using all of the points:
+
+```{r}
+out_cor <- correlate_non_zero(mcols(tss_windows), c("mcf7_expr", "mcf7_read"), log_transform = TRUE, non_zero = non_zero, test = TRUE)
+out_cor
+```
+
+
+We will save the correlation results in some plain text files.
+
+```{r save_tables}
+saveloc <- "../inst/correlation_tables"
+cat(out_cor, file = file.path(saveloc, "expression_tss.txt"))
+```
