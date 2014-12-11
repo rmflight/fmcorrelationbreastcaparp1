@@ -8,12 +8,12 @@ This package contains functions and vignettes used in generating correlation res
 
 * Functions used in the analysis
 * Vignettes providing the full calculations of the correlation of nucleosome associated PARP1 reads in the MCF-7 and MDA-MB123 cell lines with
-  * [CTCF ChIP-Seq](ctcf_vignette)
-  * [Methylation reads](methylation_vignette)
-  * [Histone Marks ChIP-Seq](histone_vignette)
-  * [Transcript Expression](expression_vignette)
+  * [CTCF ChIP-Seq](https://rmflight.github.io/fmcorrelationbreastcaparp1/parp1_ctcf.html)
+  * [Methylation reads](https://rmflight.github.io/fmcorrelationbreastcaparp1/parp1_methylation.html)
+  * [Histone Marks ChIP-Seq](https://rmflight.github.io/fmcorrelationbreastcaparp1/parp1_histone_marks.html)
+  * [Transcript Expression](https://rmflight.github.io/fmcorrelationbreastcaparp1/parp1_expression.html)
   
-In addition, the correlations are stored in plain text files available [here](https://github.com/rmflight/fmanalysisbreastcaparp1/tree/master/inst/correlation_tables). These values were reported in the paper.
+In addition, the correlations are stored in plain text files available [here](https://github.com/rmflight/fmcorrelationbreastcaparp1/tree/master/inst/correlation_tables). These values were reported in the paper.
 
 ## Citation
 
