@@ -1,6 +1,6 @@
 Package: fmcorrelationbreastcaparp1
 Type: Package
-Title: Functions for calculating the correlations in PARP1 nucleosome data on breast cancer cell lines
+Title: Functions for calculating the correlations in PARP1 nucleosome data in breast cancer cell lines
 Version: 0.0.1
 Date: 2014-10-16
 Author: Robert M Flight

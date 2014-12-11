@@ -19,7 +19,7 @@ In addition, the correlations are stored in plain text files available [here](ht
 
 If this package is used for other analyses, it should be cited as:
 
-**fmanalysisbreastcaparp1: Functions for analyzing PARP1 nucleosome data on breast cancer cell lines**, R. M. Flight, Y. Fondufe-Mittendorf, H. N. B. Moseley doi:xxxxxx
+**fmcorrelationbreastcaparp1: Functions for calculating the correlations in PARP1 nucleosome data in breast cancer cell lines**, R. M. Flight, Y. Fondufe-Mittendorf, H. N. B. Moseley doi:xxxxxx
 
 ## Installation
 
@@ -27,7 +27,7 @@ To install this package, you should use `devtools`:
 
 ```
 library("devtools")
-install_github("rmflight/fmanalysisbreastcaparp1")
+install_github("rmflight/fmcorrelationbreastcaparp1")
 ```
 
 ## Recreating Vignettes
@@ -44,14 +44,13 @@ unzip figshare.zip -d fmdatabreastcaparp1/data
 R CMD install fmdatabreastcaparp1
 
 # clone the analysis package
-git clone https://github.com/rmflight/fmanalysisbreastcaparp1.git
+git clone https://github.com/rmflight/fmcorrelationbreastcaparp1.git
 ```
 
 Then in `R`, use `devtools` to re-build the vignettes:
 
 ```
 # assumes you started R in the cloned directory
-library("fmdatabreastcaparp1")
 build_vignettes()
 ```
 
