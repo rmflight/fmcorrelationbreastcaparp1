@@ -4,14 +4,11 @@ knitr::opts_chunk$set(dev='png')
 ## ----setup---------------------------------------------------------------
 graph_dir <- "/mlab/data/rmflight/Documents/projects/work/fondufe-mittendorf_lab/parp1/graphs"
 library(GenomicRanges)
-library(magrittr)
-options(mc.cores = 10)
-library(parallel)
 library(ggplot2)
-library(BiocParallel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 
 ## ----plotX11, eval=FALSE-------------------------------------------------
 #  X11()

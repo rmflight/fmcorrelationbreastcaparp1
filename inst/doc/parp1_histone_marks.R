@@ -4,7 +4,8 @@ knitr::opts_chunk$set(dev='png')
 ## ----load_packages-------------------------------------------------------
 library(GenomicRanges)
 library(ggplot2)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 library(BSgenome.Hsapiens.UCSC.hg19)
 
 ## ----load_tss_parp1------------------------------------------------------
@@ -49,7 +50,7 @@ out_cor <- do.call(rbind, out_cor)
 rownames(out_cor) <- all_comb_names
 
 ## ----tss_correlations, results='asis', echo=FALSE------------------------
-kable(out_cor)
+knitr::kable(out_cor)
 
 ## ----graphs, fig.keep='all'----------------------------------------------
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
@@ -86,7 +87,7 @@ genome_cor <- do.call(rbind, genome_cor)
 rownames(genome_cor) <- all_comb_names
 
 ## ----genome_cor_display, results='asis', echo=FALSE----------------------
-kable(genome_cor)
+knitr::kable(genome_cor)
 
 ## ----save_tables---------------------------------------------------------
 saveloc <- "../inst/correlation_tables"

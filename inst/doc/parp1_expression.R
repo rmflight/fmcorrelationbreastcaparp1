@@ -1,11 +1,12 @@
 ## ----setupKnitr, echo=FALSE, results='hide'------------------------------
 knitr::opts_chunk$set(dev='png')
 
-## ----use_dir-------------------------------------------------------------
+## ----load_packages-------------------------------------------------------
 library(GenomicRanges)
 library(ggplot2)
 library(hgu133plus2.db)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 
 ## ----load_data-----------------------------------------------------------
 data(tss_windows)

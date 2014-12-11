@@ -1,24 +1,27 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: Expression}
-% \VignetteDepends{GenomicRanges, ggplot2, hgu133plus2.db, fmanalysisbreastcaparp1, fmdatabreastcaparp1}
-% \VignettePackage{fmanalysisbreastcaparp1}
+% \VignetteIndexEntry{fmcorrelationbreastcaparp1: Expression}
+% \VignetteDepends{GenomicRanges, ggplot2, hgu133plus2.db, fmcorrelationbreastcaparp1, fmdatabreastcaparp1}
+% \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
-# Correlation of transcript abundance and Parp1 at TSS
+# Correlation of PARP1 with Transcript Abundance
+
+We will analyze the correlation of nucleosome associated PARP1 reads with transcript abundance as measured using Affymetrix Gene Chip HGU 133 Plus 2.0. The gene chip data is from GEO [GSM307014](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM307014). The PARP1 reads and expression data has already been processed and is made available as part of the [fmdatabreastcaparp1](https://github.com/rmflight/fmdatabreastcaparp1) package. 
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')
 ```
 
-```{r use_dir}
+```{r load_packages}
 library(GenomicRanges)
 library(ggplot2)
 library(hgu133plus2.db)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 ```
 
-In the initial analysis, we will use the Parp1 reads restricted to the TSS's. 
+Load the data.
 
 ```{r load_data}
 data(tss_windows)
