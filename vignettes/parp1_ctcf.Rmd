@@ -1,8 +1,8 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF}
-% \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
-% \VignettePackage{fmanalysisbreastcaparp1}
+% \VignetteIndexEntry{fmcorrelationbreastcaparp1: CTCF}
+% \VignetteDepends{fmcorrelationbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
+% \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
 # Correlation with CTCF
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(dev='png')
 library(GenomicRanges)
 library(ggplot2)
 library(BSgenome.Hsapiens.UCSC.hg19)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
 library(fmdatabreastcaparp1)
 ```
 

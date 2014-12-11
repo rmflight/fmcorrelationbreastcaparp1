@@ -1,8 +1,8 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysismcf7parp1: Error Analysis}
-% \VignetteDepends{GenomicRanges, fmdatamcf7parp1, ggplot2, BSgenome.Hsapiens.UCSC.hg19, pracma, fmanalysisbreastcaparp1}
-% \VignettePackage{fmanalysismcf7parp1}
+% \VignetteIndexEntry{fmcorrelationmcf7parp1: Error Analysis}
+% \VignetteDepends{GenomicRanges, fmdatamcf7parp1, ggplot2, BSgenome.Hsapiens.UCSC.hg19, pracma, fmcorrelationbreastcaparp1}
+% \VignettePackage{fmcorrelationmcf7parp1}
 -->
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
@@ -19,7 +19,7 @@ library(GenomicRanges)
 library(ggplot2)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(pracma)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
 library(fmdatabreastcaparp1)
 ```
 
