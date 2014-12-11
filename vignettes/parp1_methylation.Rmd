@@ -88,7 +88,7 @@ rownames(out_cor) <- all_comb_names
 TSS correlations:
 
 ```{r tss_correlations, results='asis', echo=FALSE}
-kable(out_cor)
+knitr::kable(out_cor)
 ```
 
 And generate all the graphs.
@@ -136,7 +136,7 @@ rownames(genome_cor) <- all_comb_names
 Genome wide correlations:
 
 ```{r genome_cor_display, results='asis', echo=FALSE}
-kable(genome_cor)
+knitr::kable(genome_cor)
 ```
 
 
