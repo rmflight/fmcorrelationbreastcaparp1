@@ -1,13 +1,13 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: Histone Marks}
-% \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
-% \VignettePackage{fmanalysisbreastcaparp1}
+% \VignetteIndexEntry{fmcorrelationbreastcaparp1: Histone Marks}
+% \VignetteDepends{fmcorrelationbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
+% \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
 # Correlation with Histone Marks
 
-The easiest way I can think of to use the minimum cutoffs is to set anything below that cutoff to 0 in the object.
+In this analysis we are going to calculate correlations of the PARP1 reads with a variety of histone mark ChIP-seq data from UCSC/ENCODE. The PARP1 reads and histone mark data has already been processed and is made available as part of the [fmdatabreastcaparp1](https://github.com/rmflight/fmdatabreastcaparp1) package. 
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')
@@ -21,7 +21,7 @@ library(fmdatabreastcaparp1)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 
-In the initial analysis, we will use the TSS windows. 
+## TSS Windows
 
 ```{r load_tss_parp1}
 data(parp1_ln4_unique)
@@ -40,6 +40,8 @@ tss_windows <- binned_function(tss_windows, mcf7_cov, "sum", "parp1_mcf7")
 tss_windows <- binned_function(tss_windows, mdamb231_cov, "sum", "parp1_mdamb231")
 ```
 
+
+Get the averaged ChIP-seq peak intensity in each tss window.
 
 ```{r average_histone_peaks}
 for (i_name in names(histone_marks)){
