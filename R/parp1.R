@@ -421,7 +421,7 @@ cut_2_value <- function(cuts, type = "left"){
 #' 
 #' @param x a two column data.frame
 #' @param n_quantile how many quantiles
-#' @param similarity_function what similarity function to use
+#' @param similarity what similarity function to use
 #' @param cut_loc which way to generate cut values on the data ("left", "right", "mid")
 #' 
 #' @export
