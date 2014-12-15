@@ -90,6 +90,7 @@ binned_function <- function(bins, numvar, binfun = "mean", mcolname = "avg"){
 #' @param delim the delimiter to use
 #' @param read_start the column containing the read starts
 #' @param width how wide are the reads
+#' @param strand which column name has the strand information
 #' @param scramble_strand should the strand be scrambled (default is \code{TRUE})
 #' @param max_count what is the maximum value that the counts should be
 #' @param prepend text to prepend the out_file name with
