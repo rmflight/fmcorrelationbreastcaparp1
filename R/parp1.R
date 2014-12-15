@@ -170,38 +170,6 @@ average_value <- function(granges, use_column = "mcols.signal"){
   return(weighted.mean(range_value, range_weights))
 }
 
-#' get overlap counts
-#' 
-#' given a set of files (assumed to be chromosomes), and a set of \code{GRanges}, count the number of overlaps with
-#' the \code{GRanges}.
-#' 
-#' @param file_list the list of files to read in corresponding to ranges
-#' @param granges the genomic ranges to count the overlaps with
-#' @param offset a value by which to \code{shift} the reads by, positively for "+" and negatively for "-"
-#' 
-#' @return vector of counts
-#' @export
-#' @import GenomicRanges
-get_overlap_counts <- function(file_list, granges, offset = 0){
-  out_overlap <- mclapply(file_list, function(x){
-    load(x)
-    if (!(exists("unique_locs"))){
-      stop("unique_locs does not exist!", call. = FALSE)
-    }
-    
-    ul_granges_overlap <- findOverlaps(unique_locs, granges)
-    ul_granges_list <- split(queryHits(ul_granges_overlap), subjectHits(ul_granges_overlap))
-    
-    unlist(lapply(ul_granges_list, function(in_overlap){
-      sum(mcols(unique_locs[in_overlap])[, "count"])
-    }))
-  })
-  
-  
-  out_tss <- unlist(out_overlap)
-  names(out_tss) <- names(granges)[as.numeric(names(out_tss))]
-  return(out_tss)
-}
 
 #' get chromosome
 #' 
