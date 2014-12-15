@@ -263,6 +263,7 @@ find_non_zeros <- function(data, data_columns, log_transform = TRUE, non_zero = 
 #' @param data the data we are working with
 #' @param data_columns which columns to use
 #' @param log_transform do a log transformation on the data before calculating the correlation
+#' @param non_zero which columns can be non_zero
 #' @param n_boot how many bootstrap samples to generate
 #' @return correlation value and standard deviation
 #' @export
