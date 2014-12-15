@@ -11,9 +11,9 @@ run_cum_quantiles(x, n_quantile = 101, similarity = stats::cor,
 
 \item{n_quantile}{how many quantiles}
 
-\item{cut_loc}{which way to generate cut values on the data ("left", "right", "mid")}
+\item{similarity}{what similarity function to use}
 
-\item{similarity_function}{what similarity function to use}
+\item{cut_loc}{which way to generate cut values on the data ("left", "right", "mid")}
 }
 \value{
 data.frame with the values, the corresponding cut value, and which cumulative indices generated it

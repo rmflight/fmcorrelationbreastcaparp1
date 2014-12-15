@@ -13,6 +13,8 @@ bootstrap_correlation(data, data_columns, log_transform = TRUE,
 
 \item{log_transform}{do a log transformation on the data before calculating the correlation}
 
+\item{non_zero}{which columns can be non_zero}
+
 \item{n_boot}{how many bootstrap samples to generate}
 }
 \value{

@@ -16,6 +16,8 @@ convert_to_counted(reads_file, delim = ",", read_start = "startx",
 
 \item{width}{how wide are the reads}
 
+\item{strand}{which column name has the strand information}
+
 \item{scramble_strand}{should the strand be scrambled (default is \code{TRUE})}
 
 \item{max_count}{what is the maximum value that the counts should be}
