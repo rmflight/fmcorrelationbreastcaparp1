@@ -1,24 +1,27 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: CTCF Binding}
-% \VignetteDepends{fmanalysisbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
-% \VignettePackage{fmanalysisbreastcaparp1}
+% \VignetteIndexEntry{fmcorrelationbreastcaparp1: CTCF}
+% \VignetteDepends{GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1, knitr}
+% \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
-# Overlap with CTCF Chip-Seq within Transcription Start Sites
+# Correlation of PARP1 with CTCF ChIP-Seq
+
+We will analyze the correlation of nucleosome associated PARP1 reads with CTCF ChIP-seq. The CTCF ChIP-seq is from the UCSC/ENCODE data portal. The PARP1 reads and CTCF ChIP-seq data has already been processed and is made available as part of the [fmdatabreastcaparp1](https://github.com/rmflight/fmdatabreastcaparp1) package. 
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')
 ```
 
-```{r use_dir}
+```{r load_packages}
 library(GenomicRanges)
 library(ggplot2)
 library(BSgenome.Hsapiens.UCSC.hg19)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 ```
 
-In the initial analysis, we will use the TSS windows. 
+Load the PARP1 data.
 
 ```{r load_tss_parp1}
 data(tss_windows)
@@ -36,6 +39,7 @@ tss_windows <- binned_function(tss_windows, mcf7_cov, "sum", "parp1_mcf7")
 tss_windows <- binned_function(tss_windows, mdamb231_cov, "sum", "parp1_mdamb231")
 ```
 
+Load the CTCT ChIP-seq data, and average the ChIP-seq peaks in each TSS window.
 
 ```{r read_ctcf}
 data(ctcf_rep1)
@@ -53,6 +57,7 @@ Now with the Parp1 reads and CTCF ChIP-Seq data, we can start doing some correla
 non_zero <- "both"
 ```
 
+Start with a sampling of points and graph and generate a correlation.
 
 ```{r graphit}
 r1_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("ctcf_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
@@ -64,7 +69,7 @@ ggplot(r2_v_mcf7, aes(x = ctcf_r2, y = parp1_mcf7)) + geom_point() + scale_y_log
 cor(log10(r2_v_mcf7[,1]+1), log10(r2_v_mcf7[,2]+1))
 ```
 
-Cool. Now we are showing some promise. Let's do them all.
+Now do them all.
 
 ```{r grab_all}
 all_comb <- expand.grid(c("ctcf_r1", "ctcf_r2"), c("parp1_mcf7", "parp1_mdamb231"), stringsAsFactors = FALSE)
@@ -80,7 +85,7 @@ rownames(out_cor) <- all_comb_names
 TSS correlations:
 
 ```{r tss_correlations, results='asis', echo=FALSE}
-kable(out_cor)
+knitr::kable(out_cor)
 ```
 
 ```{r graphs}
@@ -127,11 +132,11 @@ rownames(genome_cor) <- all_comb_names
 Genome wide correlations:
 
 ```{r genome_cor_display, results='asis', echo=FALSE}
-kable(genome_cor)
+knitr::kable(genome_cor)
 ```
 
 
-We will save the correlation results in some plain text files.
+Save the correlation results in some plain text files.
 
 ```{r save_tables}
 saveloc <- "../inst/correlation_tables"

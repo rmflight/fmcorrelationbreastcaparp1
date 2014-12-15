@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmcorrelationmcf7parp1: Error Analysis}
-% \VignetteDepends{GenomicRanges, fmdatamcf7parp1, ggplot2, BSgenome.Hsapiens.UCSC.hg19, pracma, fmcorrelationbreastcaparp1}
+% \VignetteDepends{GenomicRanges, fmdatabreastcaparp1, ggplot2, BSgenome.Hsapiens.UCSC.hg19, pracma}
 % \VignettePackage{fmcorrelationmcf7parp1}
 -->
 

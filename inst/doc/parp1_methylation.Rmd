@@ -1,24 +1,27 @@
 <!--
 % \VignetteEngine{knitr}
-% \VignetteIndexEntry{fmanalysisbreastcaparp1: Methylation}
-% \VignetteDepends{GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmanalysisbreastcaparp1, fmdatabreastcaparp1}
-% \VignettePackage{fmanalysisbreastcaparp1}
+% \VignetteIndexEntry{fmcorrelationbreastcaparp1: Methylation}
+% \VignetteDepends{GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
+% \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
-# Overlap with Methylation Read Coverage within Transcription Start Sites
+# Correlation of PARP1 with Methylated Read Coverage
+
+In this analysis we are going to calculate correlations of the PARP1 reads with the methylated reads from UCSC/ENCODE. The PARP1 reads and methylation read data has already been processed and is made available as part of the [fmdatabreastcaparp1](https://github.com/rmflight/fmdatabreastcaparp1) package. 
 
 ```{r setupKnitr, echo=FALSE, results='hide'}
 knitr::opts_chunk$set(dev='png')
 ```
 
-```{r use_dir}
+```{r load_packages}
 library(GenomicRanges)
 library(ggplot2)
-library(fmanalysisbreastcaparp1)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
 library(BSgenome.Hsapiens.UCSC.hg19)
 ```
 
-In the initial analysis, we will use the TSS windows. 
+## TSS Windows
 
 ```{r load_tss_parp1}
 data(parp1_ln4_unique)
@@ -57,6 +60,7 @@ Now with the Parp1 reads and methylation reads, we can start doing some correlat
 non_zero <- "both"
 ```
 
+Here we do a subsampling visualization and correlation to see how things look:
 
 ```{r graphit}
 r1_v_mcf7 <- subsample_nonzeros(mcols(tss_windows), c("methyl_r1", "parp1_mcf7"), non_zero = non_zero, n_points = 10000)
@@ -68,7 +72,7 @@ ggplot(r2_v_mcf7, aes(x = methyl_r2, y = parp1_mcf7)) + geom_point() + scale_y_l
 cor(log10(r2_v_mcf7[,1]+1), log10(r2_v_mcf7[,2]+1))
 ```
 
-Cool. Now we are showing some promise. Let's do them all.
+And now use all of the non-zero points in both:
 
 ```{r grab_all}
 all_comb <- expand.grid(c("methyl_r1", "methyl_r2"), c("parp1_mcf7", "parp1_mdamb231"), stringsAsFactors = FALSE)
@@ -84,9 +88,10 @@ rownames(out_cor) <- all_comb_names
 TSS correlations:
 
 ```{r tss_correlations, results='asis', echo=FALSE}
-kable(out_cor)
+knitr::kable(out_cor)
 ```
 
+And generate all the graphs.
 
 ```{r graphs}
 out_graphs <- lapply(seq(1, nrow(all_comb)), function(i_row){
@@ -98,7 +103,7 @@ out_graphs
 ```
 
 
-### Genome Wide Comparison
+## Genome Wide Comparison
 
 Are these correlations a result of association with the TSS's? One way to test this is to set up a calculation genome-wide.
 
@@ -131,7 +136,7 @@ rownames(genome_cor) <- all_comb_names
 Genome wide correlations:
 
 ```{r genome_cor_display, results='asis', echo=FALSE}
-kable(genome_cor)
+knitr::kable(genome_cor)
 ```
 
 

@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmcorrelationbreastcaparp1: Expression}
-% \VignetteDepends{GenomicRanges, ggplot2, hgu133plus2.db, fmcorrelationbreastcaparp1, fmdatabreastcaparp1}
+% \VignetteDepends{GenomicRanges, ggplot2, hgu133plus2.db, fmdatabreastcaparp1}
 % \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
