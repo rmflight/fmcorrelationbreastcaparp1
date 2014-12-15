@@ -1,7 +1,7 @@
 <!--
 % \VignetteEngine{knitr}
 % \VignetteIndexEntry{fmcorrelationbreastcaparp1: Histone Marks}
-% \VignetteDepends{fmcorrelationbreastcaparp1, GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
+% \VignetteDepends{GenomicRanges, ggplot2, BSgenome.Hsapiens.UCSC.hg19, fmdatabreastcaparp1}
 % \VignettePackage{fmcorrelationbreastcaparp1}
 -->
 
