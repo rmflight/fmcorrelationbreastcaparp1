@@ -19,7 +19,6 @@ install:
   - ./travis-tool.sh bioc_install GenomicRanges IRanges hgu133plus2.db BSgenome.Hsapiens.UCSC.hg19
   - ./travis-tool.sh install_r magrittr pracma stats
   - ./travis-tool.sh install_deps
-  - ./.install_data.sh
 
 script: 
   - ./travis-tool.sh run_tests
