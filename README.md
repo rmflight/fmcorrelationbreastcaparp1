@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rmflight/fmcorrelationbreastcaparp1.svg?branch=master)](https://travis-ci.org/rmflight/fmcorrelationbreastcaparp1)
+
 # Fondufe-Mittendorf Breast Cancer PARP1 Correlation Analysis Package
 
 This package contains functions and vignettes used in generating correlation results for the publication:
@@ -63,3 +65,7 @@ build_vignettes()
 ```
 
 This will generate the correlation files as well, hopefully they will give the same results as are already stored.
+
+## Memory
+
+Re-generating the vignettes is a memory hog. Tracking memory usage during `build_vignettes` resulted in ~16GB used at peak areas. Keep that in mind if you want to redo the vignettes.
