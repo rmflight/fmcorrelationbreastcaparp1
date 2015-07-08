@@ -21,3 +21,59 @@ There has been some question about whether the signal observed in this data set 
 * Repeat 1000 times
 * Compare distributions of *general* and *parp1* counts
 
+## Load Data
+
+```{r load_data, message=FALSE}
+library(ggplot2)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
+data("histone_marks") # mcf-7 histone modifications
+data("parp1_ln4_unique") # mcf-7 parp1 reads
+```
+
+## Tile Genome & Coverage
+
+```{r tile}
+genome_tiles <- tileGenome(seqinfo(Hsapiens), tilewidth = 2000, cut.last.tile.in.chrom = TRUE)
+```
+
+```{r parp1_counts}
+min_sum <- 100
+parp1_cov <- coverage(parp1_ln4_unique, weight = "n_count")
+genome_tiles <- binned_function(genome_tiles, parp1_cov, "sum", "parp1")
+mcols(genome_tiles)$parp1[mcols(genome_tiles)$parp1 < min_sum] <- 0
+mcols(genome_tiles)$parp1[mcols(genome_tiles)$parp1 >= min_sum] <- 1
+```
+
+```{r nucleosome_counts}
+mcols(genome_tiles)$nucleosome <- 0
+histone_tiles <- genome_tiles
+for (i_name in names(histone_marks)){
+  histone_cov <- coverage(histone_marks[[i_name]], weight = "mcols.signal")
+  histone_tiles <- binned_function(histone_tiles, histone_cov, "sum", i_name)
+  mcols(genome_tiles)$nucleosome[mcols(histone_tiles)[, i_name] > 0] <- 1 
+}
+```
+
+## Sample & Count
+
+Now we will take a bunch of samplings from the tiles, and then count how many have **nucleosomes** and how many have **parp1**.
+
+```{r sample}
+n_sample <- 1000
+out_counts <- lapply(seq(1, 1000), function(x){
+  use_loc <- sample(length(genome_tiles), n_sample)
+  tmp <- colSums(as.matrix(mcols(genome_tiles[use_loc])))
+  #tmp["nucleosome"] <- tmp["nucleosome"] * norm_factor
+  data.frame(counts = tmp, which = names(tmp))
+})
+out_counts <- do.call(rbind, out_counts)
+```
+
+## Plot!
+
+```{r plotit}
+ggplot(out_counts, aes(x = counts, fill = which)) + geom_histogram(alpha = 0.8, binwidth = 1, position = "identity")
+```
+
