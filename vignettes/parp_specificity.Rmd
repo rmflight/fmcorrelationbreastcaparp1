@@ -65,7 +65,6 @@ n_sample <- 1000
 out_counts <- lapply(seq(1, 1000), function(x){
   use_loc <- sample(length(genome_tiles), n_sample)
   tmp <- colSums(as.matrix(mcols(genome_tiles[use_loc])))
-  #tmp["nucleosome"] <- tmp["nucleosome"] * norm_factor
   data.frame(counts = tmp, which = names(tmp))
 })
 out_counts <- do.call(rbind, out_counts)
