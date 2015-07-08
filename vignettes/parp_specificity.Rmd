@@ -1,0 +1,23 @@
+---
+title: "Parp1 Specificity"
+author: "Robert M Flight"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Parp1 Specificity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+There has been some question about whether the signal observed in this data set is Parp1 specific or general nucleosome binding. This vignette attempts to answer that question using the histone modification marks as indicators of general nucleosome binding in the matched cell types, and compared to the Parp1 associated nucleosomes.
+
+## Proposed Analysis
+
+* Tile genome into equally sized tiles
+* Define cutoff of signal to denote *presence* of nucleosomes
+* Using *all* histone marks as indicators of *general* nucleosome binding, find tiles **with** nucleosome binding
+* Using *parp1* reads, find tiles **with** parp1 associated nucleosomes
+* Sample 1000 random tiles, count *general* and *parp1* nucleosomes
+* Repeat 1000 times
+* Compare distributions of *general* and *parp1* counts
+
