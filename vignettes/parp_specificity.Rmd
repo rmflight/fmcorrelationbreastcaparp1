@@ -94,20 +94,27 @@ both <- sum(as.logical(presence$parp1) & as.logical(presence$histmod))
 
 ## MNase Nucleosome Signal
 
-Have downloaded the MNase nucleosome signal from ENCODE for GM12878 and K562. Will combine these to generate overall nucleosome signal.
+Have downloaded the MNase nucleosome signal from ENCODE for GM12878 and K562. Will combine these to generate overall nucleosome signal. See `get_bigwig_data.R` for how this was generated.
 
-```{r load_nuc_signal, eval = FALSE}
-genome_tiles <- genome_tiles[seqnames(genome_tiles) %in% seqnames(seqinfo(BigWigFile("../wgEncodeSydhNsomeGm12878Sig.bigWig")))]
-seqlevels(genome_tiles) <- paste0("chr", c(seq(1, 22), "X", "M"))
+```{r load_nuc_signal}
+data(nuc_signal)
+genome_tiles <- subsetByOverlaps(genome_tiles, nuc_signal, type = "equal")
 
-#tmp_tiles <- genome_tiles[sample(length(genome_tiles), 1000)]
-
-MAP <- function(RANGE, FILE, ...) {
-  tmp <- import.bw(FILE, selection=RANGE, as="GRanges")
-  unlist(sum(runValue(coverage(tmp, weight = "score")[RANGE])))
-}
-
-bw_counts <- reduceByRange(genome_tiles, files = "../wgEncodeSydhNsomeGm12878Sig.bigWig", MAP)
-bw_counts2 <- unlist(bw_counts)
+mcols(genome_tiles)[, "gm12878"] <- 0
+mcols(genome_tiles)[mcols(nuc_signal)$nuc > 100, "gm12878"] <- 1
 ```
 
+Now lets compare how much specificity or overlap there is among occupancy in the tiles. We will look for how many things in each combination using the `vennCounts` function from `limma` package to count overlaps.
+
+```{r overlaps}
+library(limma)
+presence2 <- as.matrix(mcols(genome_tiles))
+nuc_overlap_counts <- vennCounts(presence2)
+attr(nuc_overlap_counts, "class") <- NULL
+```
+
+```{r}
+knitr::kable(nuc_overlap_counts)
+```
+
+From this table we can see that both the *Parp1* and *histone modifications* are subsets of the nucleosome locations, as we would expect.
