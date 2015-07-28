@@ -97,11 +97,11 @@ both <- sum(as.logical(presence$parp1) & as.logical(presence$histmod))
 Have downloaded the MNase nucleosome signal from ENCODE for GM12878 and K562. Will combine these to generate overall nucleosome signal. See `get_bigwig_data.R` for how this was generated.
 
 ```{r load_nuc_signal}
-load("gm12878_nuc2.RData")
-genome_tiles <- subsetByOverlaps(genome_tiles, nuc_counts, type = "equal")
+data(nuc_signal)
+genome_tiles <- subsetByOverlaps(genome_tiles, nuc_signal, type = "equal")
 
 mcols(genome_tiles)[, "gm12878"] <- 0
-mcols(genome_tiles)[mcols(nuc_counts)$nuc > 100, "gm12878"] <- 1
+mcols(genome_tiles)[mcols(nuc_signal)$nuc > 100, "gm12878"] <- 1
 ```
 
 Now lets compare how much specificity or overlap there is among occupancy in the tiles. We will look for how many things in each combination using the `vennCounts` function from `limma` package to count overlaps.
