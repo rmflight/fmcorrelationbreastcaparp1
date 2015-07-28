@@ -47,8 +47,8 @@ git clone https://github.com/rmflight/fmcorrelationbreastcaparp1.git
 mkdir fmdatabreastcaparp1/data
 
 # pull down the data
-wget https://dl.dropbox.com/s/89xgvje4rfl0lml/fmdatabreastcaparp1.zip
-unzip fmdatabreastcaparp1.zip -d fmdatabreastcaparp1/data
+wget http://downloads.figshare.com/article/public/1266451.zip
+unzip 1266451.zip -d fmdatabreastcaparp1/data
 
 # start R and use devtools to install the packages
 R
@@ -61,7 +61,7 @@ Then in `R`, use `devtools` to re-build the vignettes:
 
 ```
 # assumes you started R in the cloned directory
-build_vignettes()
+devtools::build_vignettes()
 ```
 
 This will generate the correlation files as well, hopefully they will give the same results as are already stored.
