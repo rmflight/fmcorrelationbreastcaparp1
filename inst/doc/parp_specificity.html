@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Parp1 Specificity</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<!--
+  %\VignetteIndexEntry{Parp1 Specificity}
+  %\VignetteEngine{knitr}
+  %\VignetteEncoding{UTF-8}
+  %\VignettePackage{fmcorrelationbreastcaparp1}
+-->
+
+<h1>Parp1 Specificity</h1>
+
+<p>There has been some question about whether the signal observed in this data set is Parp1 specific or general nucleosome binding. This vignette attempts to answer that question using the histone modification marks as indicators of general nucleosome binding in the matched cell types, and compared to the Parp1 associated nucleosomes.</p>
+
+<h2>Proposed Analysis</h2>
+
+<ul>
+<li>Tile genome into equally sized tiles</li>
+<li>Define cutoff of signal to denote <em>presence</em> of nucleosomes</li>
+<li>Using <em>all</em> histone marks as indicators of <em>general</em> nucleosome binding, find tiles <strong>with</strong> nucleosome binding</li>
+<li>Using <em>parp1</em> reads, find tiles <strong>with</strong> parp1 associated nucleosomes</li>
+<li>Sample 1000 random tiles, count <em>general</em> and <em>parp1</em> nucleosomes</li>
+<li>Repeat 1000 times</li>
+<li>Compare distributions of <em>general</em> and <em>parp1</em> counts</li>
+</ul>
+
+<h2>Load Data</h2>
+
+<pre><code class="r">library(ggplot2)
+library(GenomicFiles)
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(fmcorrelationbreastcaparp1)
+library(fmdatabreastcaparp1)
+data(&quot;histone_marks&quot;) # mcf-7 histone modifications
+data(&quot;parp1_ln4_unique&quot;) # mcf-7 parp1 reads
+</code></pre>
+
+<h2>Tile Genome &amp; Coverage</h2>
+
+<pre><code class="r">genome_tiles &lt;- tileGenome(seqinfo(Hsapiens), tilewidth = 500, cut.last.tile.in.chrom = TRUE)
+</code></pre>
+
+<pre><code class="r">min_sum &lt;- 25
+parp1_cov &lt;- coverage(parp1_ln4_unique, weight = &quot;n_count&quot;)
+genome_tiles &lt;- binned_function(genome_tiles, parp1_cov, &quot;sum&quot;, &quot;parp1&quot;)
+mcols(genome_tiles)$parp1[mcols(genome_tiles)$parp1 &lt; min_sum] &lt;- 0
+mcols(genome_tiles)$parp1[mcols(genome_tiles)$parp1 &gt;= min_sum] &lt;- 1
+</code></pre>
+
+<pre><code class="r">mcols(genome_tiles)$histmod &lt;- 0
+histone_tiles &lt;- genome_tiles
+for (i_name in names(histone_marks)){
+  histone_cov &lt;- coverage(histone_marks[[i_name]], weight = &quot;mcols.signal&quot;)
+  histone_tiles &lt;- binned_function(histone_tiles, histone_cov, &quot;sum&quot;, i_name)
+  mcols(genome_tiles)$histmod[mcols(histone_tiles)[, i_name] &gt; 0] &lt;- 1 
+}
+</code></pre>
+
+<h2>Sample &amp; Count</h2>
+
+<p>Now we will take a bunch of samplings from the tiles, and then count how many have <strong>nucleosomes</strong> and how many have <strong>parp1</strong>.</p>
+
+<pre><code class="r">n_sample &lt;- 1000
+out_counts &lt;- lapply(seq(1, 1000), function(x){
+  use_loc &lt;- sample(length(genome_tiles), n_sample)
+  tmp &lt;- colSums(as.matrix(mcols(genome_tiles[use_loc])))
+  data.frame(counts = tmp, which = names(tmp))
+})
+out_counts &lt;- do.call(rbind, out_counts)
+</code></pre>
+
+<h2>Plot!</h2>
+
+<pre><code class="r">ggplot(out_counts, aes(x = counts, fill = which)) + geom_histogram(alpha = 0.8, binwidth = 1, position = &quot;identity&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk plotit"/> </p>
+
+<h2>Genome Wide Patterns</h2>
+
+<p>How many tiles have only Parp1 binding (expect few), <em>vs</em> how many have both (expect majority of Parp1), <em>vs</em> how many have nucleosome only?</p>
+
+<pre><code class="r">presence &lt;- mcols(genome_tiles)
+parp_only &lt;- sum(as.logical(presence$parp1) &amp; !as.logical(presence$histmod))
+histmod_only &lt;- sum(!as.logical(presence$parp1) &amp; as.logical(presence$histmod))
+both &lt;- sum(as.logical(presence$parp1) &amp; as.logical(presence$histmod))
+</code></pre>
+
+<ul>
+<li>Parp only: 361837</li>
+<li>histone modification only: 265765</li>
+<li>both: 73995</li>
+</ul>
+
+<h2>MNase Nucleosome Signal</h2>
+
+<p>Have downloaded the MNase nucleosome signal from ENCODE for GM12878 and K562. Will combine these to generate overall nucleosome signal. See <code>get_bigwig_data.R</code> for how this was generated.</p>
+
+<pre><code class="r">data(nuc_signal)
+genome_tiles &lt;- subsetByOverlaps(genome_tiles, nuc_signal, type = &quot;equal&quot;)
+
+mcols(genome_tiles)[, &quot;gm12878&quot;] &lt;- 0
+mcols(genome_tiles)[mcols(nuc_signal)$nuc &gt; 100, &quot;gm12878&quot;] &lt;- 1
+</code></pre>
+
+<p>Now lets compare how much specificity or overlap there is among occupancy in the tiles. We will look for how many things in each combination using the <code>vennCounts</code> function from <code>limma</code> package to count overlaps.</p>
+
+<pre><code class="r">library(limma)
+</code></pre>
+
+<pre><code>## 
+## Attaching package: &#39;limma&#39;
+## 
+## The following object is masked from &#39;package:BiocGenerics&#39;:
+## 
+##     plotMA
+</code></pre>
+
+<pre><code class="r">presence2 &lt;- as.matrix(mcols(genome_tiles))
+nuc_overlap_counts &lt;- vennCounts(presence2)
+attr(nuc_overlap_counts, &quot;class&quot;) &lt;- NULL
+</code></pre>
+
+<pre><code class="r">knitr::kable(nuc_overlap_counts)
+</code></pre>
+
+<table><thead>
+<tr>
+<th align="right">parp1</th>
+<th align="right">histmod</th>
+<th align="right">gm12878</th>
+<th align="right">Counts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">672713</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">4698503</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">11505</td>
+</tr>
+<tr>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">254260</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">128</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">361550</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">142</td>
+</tr>
+<tr>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">73853</td>
+</tr>
+</tbody></table>
+
+<p>From this table we can see that both the <em>Parp1</em> and <em>histone modifications</em> are subsets of the nucleosome locations, as we would expect.</p>
+
+</body>
+
+</html>
